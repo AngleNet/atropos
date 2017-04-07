@@ -9,7 +9,7 @@ import codecs
 import bs4
 class Config:
     HTML_HEADERS = \
-        {'Cookie': 'SUB=SUB=_2A2514lRDDeRhGeBP4lQW9CfEyjWIHXVWlsKLrDV8PUNbmtBeLWnakW9DsmHuEyN_TLFwn_ADBUYrWRXEbQ..'}
+        {'Cookie': ''}
     SPIDE_UTIL = 201704070000
     HTTP_SLEEP_SEC = 400
     DEBUG = True

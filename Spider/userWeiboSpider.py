@@ -156,7 +156,7 @@ def findLatestTimestamp(user, data_dir):
     :param user: Type User
     :return:
     """
-    fname = data_dir + user + '.tweet'
+    fname = data_dir + user.id + '.tweet'
     if not os.path.exists(fname):
         return Spider.utils.Config.SPIDE_UTIL
     less = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
