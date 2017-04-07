@@ -90,23 +90,24 @@ class UserWeiboSpider:
                 tweet_box = wrap_box.find('div', 'WB_detail')
                 #Spide expand box firstly.
                 omid = 0
+                omsg = None
+                ouid = ''
                 if isforward:
                     minfo = wrap_box.attrs['minfo'].split('&')
                     ouid = minfo[0].split('=')[-1]
                     omid = minfo[1].split('=')[-1]
-                    msg = self.parseTweetBox(tweet_box.find('div', 'WB_expand'),
+                    omsg = self.parseTweetBox(tweet_box.find('div', 'WB_expand'),
                                              omid, True, 0)
-                    if msg:
-                        msg.uid = ouid
-                        self.origin_tweet_wd.write(str(msg) + '\n')
-                    else :
-                        self.origin_tweet_wd.write(omid + '\n')
-
-                msg = self.parseTweetBox(tweet_box, mid, False, omid)
+                msg =  self.parseTweetBox(tweet_box, mid, False, omid)
+                if self.stop:
+                    break
                 if msg:
                     self.tweet_wd.write(str(msg) + '\n')
-                elif not self.stop:
-                    self.tweet_wd.write(mid + '\n')
+                    if omsg:
+                        msg.uid = ouid
+                        self.origin_tweet_wd.write(str(msg) + '\n')
+                    elif isforward:
+                        self.origin_tweet_wd.write(str(omid) + '\n')
             except Exception:
                 traceback.print_exc()
                 import pdb; pdb.set_trace()

@@ -8,8 +8,7 @@ import requests
 import codecs
 import bs4
 class Config:
-    HTML_HEADERS = \
-        {'Cookie': ''}
+    HTML_HEADERS = {'Cookie': 'SUB=_2A25149m0DeRhGeBP6lcR9C3PzTqIHXVWmUx8rDV8PUNbmtBeLVWikW9QXVWE8cZgzydZt7bIbU_G9qAJBA..;'}
     SPIDE_UTIL = 201704070000
     HTTP_SLEEP_SEC = 400
     DEBUG = True
@@ -105,7 +104,7 @@ def loadSUB(fn):
             sub = line
     if sub == '':
         abort('.sub not found')
-        Config.HTML_HEADERS['Cookie'] = sub
+    Config.HTML_HEADERS['Cookie'] = sub
 def sleepos(code):
     if code == 501:
         print("Too fast, going to sleep for " + str(Config.HTTP_SLEEP_SEC) + ' seconds')
