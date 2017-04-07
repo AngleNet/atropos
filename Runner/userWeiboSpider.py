@@ -1,6 +1,8 @@
 import codecs
 import sys
+sys.path.append('..')
 import Spider.userWeiboSpider
+
 import Spider.utils
 if __name__ == '__main__':
     data_dir = sys.argv[1]
