@@ -49,7 +49,7 @@ class UserWeiboSpider:
         feeds = Spider.utils.extractHtmlFromScript(ret.text)
         self.parseHtml(feeds)
     def _spidePage(self):
-        ret = Spider.utils.reliableGet(self.user.link)
+        ret = Spider.utils.reliableGet(self.user.link + '?profile_ftype=1&is_all=1')
         feeds = ''
         for script in BeautifulSoup(ret.text, 'lxml').find_all('script'):
             if'Pl_Official_MyProfileFeed__' in str(script):
@@ -189,9 +189,9 @@ def spideUser(user, data_dir=''):
 if __name__ == '__main__':
     Spider.utils.loadSUB('sub.sub')
     user = Spider.utils.User()
-    user.link ='http://weibo.com/u/2916558967'
-    user.page_id = '1005052916558967'
-    user.id = '2916558967'
+    user.link ='http://weibo.com/u/2433489795'
+    user.page_id = '1005052433489795'
+    user.id = '2433489795'
     latest = findLatestTimestamp(user, '')
     spider = UserWeiboSpider(user, latest)
     spider.start()
