@@ -42,7 +42,7 @@ class UserWeiboSpider:
         if self.origin_tweet_wd:
             self.origin_tweet_wd.close()
     def spidePage(self, page_num):
-        link = self.user.link + "?pids=" + self.user.page_id + \
+        link = self.user.link + "?pids=" + self.pids + \
                "&is_search=0&visible=0&is_all=1&is_tag=0&profile_ftype=1&" + \
                 "page=" + str(page_num) + "&ajaxpagelet=1&ajaxpagelet_v6=1"
         ret = Spider.utils.reliableGet(link)
@@ -104,8 +104,8 @@ class UserWeiboSpider:
                 if msg:
                     self.tweet_wd.write(str(msg) + '\n')
                     if omsg:
-                        msg.uid = ouid
-                        self.origin_tweet_wd.write(str(msg) + '\n')
+                        omsg.uid = ouid
+                        self.origin_tweet_wd.write(str(omsg) + '\n')
                     elif isforward:
                         self.origin_tweet_wd.write(str(omid) + '\n')
             except Exception:
@@ -118,7 +118,7 @@ class UserWeiboSpider:
             return None
         time_box = box.find('div', 'WB_from')
         mtime = Spider.utils.tsTonumber(time_box.a.attrs['title'])
-        if not isforward and mtime < self.latest:
+        if not isforward and mtime <= self.latest:
             self.stop = True
             return None
         msg = Spider.utils.Weibo()
@@ -160,15 +160,17 @@ def findLatestTimestamp(user, data_dir):
     fname = data_dir + user.id + '.tweet'
     if not os.path.exists(fname):
         return Spider.utils.Config.SPIDE_UTIL
-    less = int(datetime.datetime.now().strftime("%Y%m%d%H%M"))
+    less = 0
     with codecs.open(fname, 'r', 'utf-8') as fd:
         for line in fd.readlines():
             line = line.strip()
             if line == '':
                 continue
             cols = line[:line.find(':')].split(',')
-            if less > int(cols[2]):
+            if less < int(cols[2]):
                 less = int(cols[2])
+    if less == 0:
+        return Spider.utils.Config.SPIDE_UTIL
     return less
 
 def spideUser(user, data_dir=''):
@@ -184,12 +186,13 @@ def spideUser(user, data_dir=''):
         traceback.print_exc()
     finally:
         spider.close()
-
 if __name__ == '__main__':
+    Spider.utils.loadSUB('sub.sub')
     user = Spider.utils.User()
-    user.link ='http://weibo.com/rainbow771'
-    user.page_id = '1005051656136773'
-    user.id = '1656136773'
-    spider = UserWeiboSpider(user, 201704070000)
+    user.link ='http://weibo.com/u/2916558967'
+    user.page_id = '1005052916558967'
+    user.id = '2916558967'
+    latest = findLatestTimestamp(user, '')
+    spider = UserWeiboSpider(user, latest)
     spider.start()
     spider.close()

@@ -8,8 +8,8 @@ import requests
 import codecs
 import bs4
 class Config:
-    HTML_HEADERS = {'Cookie': 'SUB=_2A25149m0DeRhGeBP6lcR9C3PzTqIHXVWmUx8rDV8PUNbmtBeLVWikW9QXVWE8cZgzydZt7bIbU_G9qAJBA..;'}
-    SPIDE_UTIL = 201704070000
+    HTML_HEADERS = {'Cookie': ''}
+    SPIDE_UTIL = 201703252127
     HTTP_SLEEP_SEC = 400
     DEBUG = True
 
