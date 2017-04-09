@@ -109,12 +109,16 @@ def spideUsers(fname):
                         if Spider.utils.sleepos(ret.status_code):
                             continue
                         if ret.status_code == 302:
-                            link = 'http://weibo.com/' + ret.headers['location']
+                            link = 'http://weibo.com' + ret.headers['location']
                         break
                     except Exception:
                         traceback.print_exc()
             if link not in links:
                 links.append(link)
+    with codecs.open(fname + 'new', 'w', 'utf-8') as fd:
+        for link in links:
+            fd.write(link + '\n')
+    return
     with codecs.open(fname + '.new', 'w', 'utf-8') as f:
         for link in links:
             try:
