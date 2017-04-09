@@ -100,6 +100,7 @@ def spideUsers(fname):
             if re.match(r'[0-9]+', line) and re.match(r'[0-9]+', line).group() == line:
                 while True:
                     try:
+                        print('Requesting http://weibo.com/u/' + line)
                         ret = requests.head('http://weibo.com/u/' + line,
                                        headers = Spider.utils.Config.HTML_HEADERS,
                                        allow_redirects=False)
