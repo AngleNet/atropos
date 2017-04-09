@@ -138,6 +138,7 @@ class UserWeiboSpider:
             text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
         num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box)
         text = re.sub(r'\\n', '', text)
+        text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)
         text = re.sub(r'\xa0', '', text)
         if text == '转发微博':

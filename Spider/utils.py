@@ -219,6 +219,9 @@ def tweetLineSpliter(line):
     weibo = Weibo()
     loc = line.find(':')
     cols = line[:loc].split(',')
+    if cols[0] != 10:
+        debug(line)
+        return None
     weibo.uid = cols[0]
     weibo.mid = cols[1]
     weibo.time  = cols[2]
