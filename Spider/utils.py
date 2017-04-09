@@ -50,6 +50,42 @@ class Weibo:
         self.time = 0
         self.omid = ''
         self.content = ''
+    def getContentLastHop(self):
+        if self.content == '':
+            return None
+        texts = self.content.split(',')[2:]
+        txt = ''
+        for t in texts:
+            txt += t.strip()
+        hops = self._findOnpathRetweetUser(txt)
+        if hops:
+            return hops[0]
+        return hops
+    def _findOnpathUser(self, txt):
+        pass
+    def _findOnpathRetweetUser(self, txt):
+        if txt == '':
+            return None
+        s = txt.find('//@')
+        if s == -1:
+            return None
+        ss = txt[s + 3:].find('[')
+        if ss == -1:
+            debug('Missing [ after nick name')
+            debug(txt)
+            return None
+        st = txt[s + 3 + ss + 1:].find(']')
+        if st == -1:
+            debug('Missing ] after nick name')
+            debug(txt)
+            return None
+        links = list()
+        links.append(txt[s + 3 + ss+1: s + 3 + ss + 1 + st])
+        txt = txt[s + 3 + ss + 1 + st + 1:]
+        next_links = self._findOnpathRetweetUser(txt)
+        if next_links:
+            links.extend(next_links)
+        return links
     def __str__(self):
         return '%(uid)s,%(mid)s,%(time)s,%(omid)s:%(content)s' % self.__dict__
 
@@ -181,3 +217,18 @@ def tweetLineSpliter(line):
     if line == '':
         return None
     weibo = Weibo()
+    loc = line.find(':')
+    cols = line[:loc].split(',')
+    weibo.uid = cols[0]
+    weibo.mid = cols[1]
+    weibo.time  = cols[2]
+    weibo.omid = cols[3]
+    weibo.content = line[loc+1:]
+    return weibo
+
+def writeList(fname, items):
+    if items is None:
+        return
+    with codecs.open(fname, 'w', 'utf-8') as fd:
+        for item in items:
+            fd.write(str(item) + '\n')
