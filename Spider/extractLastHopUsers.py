@@ -4,8 +4,8 @@ import Spider.utils
 def extractUsers(uid, links, ouids, data_dir):
     tweet_fname = data_dir + uid + '.tweet'
     origin_tweet_fname = data_dir + uid + '.origin_tweet'
-    if not os.path.exists(data_dir+tweet_fname) or \
-            not os.path.exists(data_dir+origin_tweet_fname):
+    if not os.path.exists(tweet_fname) or \
+            not os.path.exists(origin_tweet_fname):
         Spider.utils.debug('Missing .tweet or .origin_tweet file of ' + uid)
         return []
     tweets = dict()
