@@ -109,7 +109,10 @@ def spideUsers(fname):
                     if Spider.utils.sleepos(ret.status_code):
                         continue
                     if ret.status_code == 302:
-                        link = 'http://weibo.com' + ret.headers['location']
+                        if ret.headers['location'].find('?') == -1:
+                            link = 'http://weibo.com' + ret.headers['location']
+                        else:
+                            link = ret.headers['location'].split('?')[0]
                     break
                 except Exception:
                     traceback.print_exc()
