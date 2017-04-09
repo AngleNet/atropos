@@ -1,6 +1,6 @@
 
 import Spider.utils
-import codecs, traceback, re, requests
+import codecs, traceback, re, requests, time
 from bs4 import BeautifulSoup
 """
 Need to change:
@@ -103,6 +103,7 @@ def spideUsers(fname):
             while True:
                 try:
                     print('Requesting ' + link)
+                    time.sleep(1)
                     ret = requests.head(link,
                                         headers=Spider.utils.Config.HTML_HEADERS,
                                         allow_redirects=False)
@@ -118,10 +119,11 @@ def spideUsers(fname):
                     traceback.print_exc()
             if link not in links:
                 links.append(link)
-    with codecs.open(fname + '.new', 'w', 'utf-8') as fd:
-        for link in links:
-            fd.write(link + '\n')
-    return
+    #After crawled user links, comment the following.
+    # with codecs.open(fname + '.new', 'w', 'utf-8') as fd:
+    #     for link in links:
+    #         fd.write(link + '\n')
+    # return
     with codecs.open(fname + '.new', 'w', 'utf-8') as f:
         for link in links:
             try:
