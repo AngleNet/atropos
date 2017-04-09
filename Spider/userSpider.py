@@ -97,24 +97,24 @@ def spideUsers(fname):
             line = line.strip()
             if line == '':
                 continue
-            if re.match(r'[0-9]+', line) and re.match(r'[0-9]+', line).group() == line:
+            link = line
+            if re.match(r'[0-9]+', link) and re.match(r'[0-9]+', link).group() == link:
                 while True:
                     try:
-                        print('Requesting http://weibo.com/u/' + line)
-                        ret = requests.head('http://weibo.com/u/' + line,
+                        link = 'http://weibo.com/u/' + link
+                        print('Requesting ' + link)
+                        ret = requests.head(link,
                                        headers = Spider.utils.Config.HTML_HEADERS,
                                        allow_redirects=False)
                         if Spider.utils.sleepos(ret.status_code):
                             continue
                         if ret.status_code == 302:
-                            links.append('http://weibo.com' + ret.headers['location'])
-                        else:
-                            links.append(ret.url)
+                            link = 'http://weibo.com/' + ret.headers['location']
                         break
                     except Exception:
                         traceback.print_exc()
-            else:
-                links.append(line)
+            if link not in links:
+                links.append(link)
     with codecs.open(fname + '.new', 'w', 'utf-8') as f:
         for link in links:
             try:
