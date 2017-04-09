@@ -1,6 +1,6 @@
 
 import Spider.utils
-import codecs, traceback, re
+import codecs, traceback, re, requests
 from bs4 import BeautifulSoup
 """
 Need to change:
@@ -16,7 +16,6 @@ def spideUser(link):
     user.link = link
     ret = Spider.utils.reliableGet(link)
     return parseHtml(ret.text, user)
-
 def parseHtml(html, user):
     config = ''
     feeds = ''
@@ -99,7 +98,20 @@ def spideUsers(fname):
             if line == '':
                 continue
             if re.match(r'[0-9]+', line) and re.match(r'[0-9]+', line).group() == line:
-                links.append('http://weibo.com/u/' + line)
+                while True:
+                    try:
+                        ret = requests.head('http://weibo.com/u/' + line,
+                                       headers = Spider.utils.Config.HTML_HEADERS,
+                                       allow_redirects=False)
+                        if Spider.utils.sleepos(ret.status_code):
+                            continue
+                        if ret.status_code == 302:
+                            links.append('http://weibo.com' + ret.headers['location'])
+                        else:
+                            links.append(ret.url)
+                        break
+                    except Exception:
+                        traceback.print_exc()
             else:
                 links.append(line)
     with codecs.open(fname + '.new', 'w', 'utf-8') as f:
@@ -111,3 +123,6 @@ def spideUsers(fname):
             except Exception:
                 pass
 
+if __name__ == '__main__':
+    #Spider.utils.loadSUB('sub.sub')
+    spideUsers('user_links')
