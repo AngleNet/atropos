@@ -20,4 +20,4 @@ if __name__ == '__main__':
     for uid in crawled_uids:
         Spider.extractLastHopUsers.extractUsers(uid, links, uids, data_dir)
     Spider.utils.writeList(data_dir+'user_links.original', links)
-    Spider.utils.writeList(data_dir+'user_ids.original', links)
+    Spider.utils.writeList(data_dir+'user_ids.original', uids)

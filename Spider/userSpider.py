@@ -1,6 +1,6 @@
 
 import Spider.utils
-import codecs, traceback
+import codecs, traceback, re
 from bs4 import BeautifulSoup
 """
 Need to change:
@@ -98,6 +98,8 @@ def spideUsers(fname):
             line = line.strip()
             if line == '':
                 continue
+            if re.match(r'[0-9]+', line) and re.match(r'[0-9]+', line).group() == line:
+                links.append('http://weibo.com/u/' + line)
             links.append(line)
     with codecs.open(fname + '.new', 'w', 'utf-8') as f:
         for link in links:
