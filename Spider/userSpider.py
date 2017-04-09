@@ -100,7 +100,8 @@ def spideUsers(fname):
                 continue
             if re.match(r'[0-9]+', line) and re.match(r'[0-9]+', line).group() == line:
                 links.append('http://weibo.com/u/' + line)
-            links.append(line)
+            else:
+                links.append(line)
     with codecs.open(fname + '.new', 'w', 'utf-8') as f:
         for link in links:
             try:
