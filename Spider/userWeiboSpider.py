@@ -110,7 +110,6 @@ class UserWeiboSpider:
                         self.origin_tweet_wd.write(str(omid) + '\n')
             except Exception:
                 traceback.print_exc()
-                import pdb; pdb.set_trace()
         if not turn_on:
             self.stop = True
     def parseTweetBox(self, box, mid, isforward, omid):

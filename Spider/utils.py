@@ -176,3 +176,8 @@ def userLineSpliter(line):
         user.label += label
     return user
 
+def tweetLineSpliter(line):
+    line = line.strip()
+    if line == '':
+        return None
+    weibo = Weibo()
