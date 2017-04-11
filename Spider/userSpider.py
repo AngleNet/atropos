@@ -132,7 +132,6 @@ def spideUsers(fname):
                     f.write(str(user) + '\n')
             except Exception:
                 pass
-
 if __name__ == '__main__':
     #Spider.utils.loadSUB('sub.sub')
     spideUsers('user_links')

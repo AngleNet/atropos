@@ -43,6 +43,14 @@ class User:
         return  '%(id)s,%(link)s,%(page_id)s,%(isCertified)s,%(level)s,' \
                 '%(followee)s,%(follower)s,%(number_of_tweets)s,%(label)s' % self.__dict__
 
+class Topic:
+    def __init__(self):
+        self.idx = ''
+        self.reads = 0
+        self.name = ''
+    def __str__(self):
+        return ('%(idx)s,%(reads)s,%(name)s' % self.__dict__)
+
 class Weibo:
     def __init__(self):
         self.uid = ''
@@ -88,7 +96,6 @@ class Weibo:
         return links
     def __str__(self):
         return '%(uid)s,%(mid)s,%(time)s,%(omid)s:%(content)s' % self.__dict__
-
 
 def extractTextFromTag(tag):
     num_links = 0; num_videos = 0
@@ -170,6 +177,22 @@ def reliableHead(link):
             return ret
         except requests.RequestException:
             traceback.print_exc()
+def reliableGetTweetHtml(mid):
+    mid = str(mid)
+    timeout = 0
+    while True:
+        try:
+            timeout += 5
+            if timeout > 20:
+                return None
+            ret = reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
+                                    + mid)
+            text_box = bs4.BeautifulSoup(ret.json()['data']['html'], 'lxml').body
+            return text_box
+        except Exception:
+            debug("Error while retreiving tweet " + mid)
+            debug(traceback.format_exc())
+            time.sleep(timeout)
 
 def strip(script):
     script = re.sub(r'\\r', '', script)
@@ -229,6 +252,16 @@ def tweetLineSpliter(line):
     weibo.content = line[loc+1:]
     return weibo
 
+def topicLineSpliter(line):
+    line = line.strip()
+    cols = line.split(',')
+    if len(cols) < 3:
+        return None
+    topic = Topic()
+    topic.idx = cols[0]
+    topic.reads = cols[1]
+    topic.name = cols[2]
+    return topic
 def writeList(fname, items):
     if items is None:
         return
