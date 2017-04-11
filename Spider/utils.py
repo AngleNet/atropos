@@ -115,6 +115,14 @@ def extractTextFromTag(tag):
                 num_links += 1
                 if title != '网页链接':
                     text = title
+            else:
+                text = tag.text.strip()
+                if text[0] == '#':
+                    #Trending Topic
+                    link = topicNameToIndex(link)
+                    text = '%(text)s[%(link)s]' % dict(text=text, link=link)
+                else:
+                    num_links += 1
         return (num_links, num_videos, text)
     for content in tag.contents:
         if isinstance(content, bs4.NavigableString):
@@ -128,15 +136,12 @@ def extractTextFromTag(tag):
         else:
             debug("%(content)s :: <%(type)s" % {'content': content, 'type': type(content)})
     return (num_links, num_videos, text)
-
 def debug(msg):
     if Config.DEBUG:
         caller = inspect.stack()[1]
         prefix = caller.filename + ': ' + str(caller.lineno) + ' in <' + \
             caller.function + '> : '
         print(prefix + msg)
-
-
 def loadSUB(fn):
     sub = ''
     with codecs.open(fn, 'r', 'utf-8') as fd:
@@ -154,7 +159,21 @@ def sleepos(code):
         time.sleep(Config.HTTP_SLEEP_SEC)
         return True
     return False
-
+def topicNameToIndex(link):
+    tries = 0
+    while True:
+        try:
+            tries += 1
+            if tries > 4:
+                return 'NULL'
+            ret = requests.get(link, headers=Config.HTML_HEADERS, allow_redirects=False)
+            if sleepos(ret.status_code):
+                continue
+            elif ret.status_code >= 300 and ret.status_code < 400\
+                    and ret.headers.get('location', None) and ret.headers['location'].find('?') != -1:
+                return ret.headers['location'][:ret.headers['location'].find('?')]
+        except Exception:
+            traceback.print_exc()
 def reliableGet(link):
     while True:
         try:

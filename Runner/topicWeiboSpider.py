@@ -11,5 +11,5 @@ if __name__ == '__main__':
         for line in fd.readlines():
             topic = Spider.utils.topicLineSpliter(line)
             if topic:
-                spider = Spider.topicWeiboSpider.TRWeiboSpider()
+                spider = Spider.topicWeiboSpider.TRWeiboSpider(topic)
                 Spider.utils.writeList(data_dir + topic.idx, spider.spide(4))

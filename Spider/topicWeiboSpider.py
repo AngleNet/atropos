@@ -145,3 +145,10 @@ class TRWeiboSpider:
         if text == '转发微博':
             text = ''
         return text
+if __name__ == '__main__':
+    Spider.utils.loadSUB('.sub')
+    topic = Spider.utils.Topic()
+    topic.idx = '100808edc878c27b6da95848a3b9b278796885'
+    topic.name = '#金钟仁邀您共赏andante#'
+    spider = TRWeiboSpider(topic)
+    spider.spide(4)
