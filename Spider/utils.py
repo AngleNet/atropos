@@ -117,7 +117,7 @@ def extractTextFromTag(tag):
                     text = title
             else:
                 text = tag.text.strip()
-                if text[0] == '#':
+                if len(text) > 0 and text[0] == '#':
                     #Trending Topic
                     link = topicNameToIndex(link)
                     text = '%(text)s[%(link)s]' % dict(text=text, link=link)
