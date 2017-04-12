@@ -7,6 +7,7 @@ import traceback
 import requests
 import codecs
 import bs4
+import os.path
 class Config:
     HTML_HEADERS = {'Cookie': ''}
     SPIDE_UTIL = 201704060000
@@ -69,6 +70,23 @@ class Weibo:
         if hops:
             return hops[0]
         return hops
+    def seperateContent(self):
+        num_links = 0; num_videos = 0;  pure_text = ''
+        if self.content == '' or len(self.content.split(',')) < 3:
+            debug('Malformed content:  {content}'.format(content=self.content))
+            return (num_links, num_videos, pure_text)
+        cols = self.content.split(',')
+        num_links = int(cols[0])
+        num_videos = int(cols[1])
+        text = ''
+        for col in cols[2:]:
+            text += col
+        pure_text = Weibo.getPureText(text)
+        return (num_links,num_videos, pure_text)
+    @staticmethod
+    def getPureText(text):
+        #:TODO Implement this
+        pass
     def _findOnpathUser(self, txt):
         pass
     def _findOnpathRetweetUser(self, txt):
@@ -97,6 +115,19 @@ class Weibo:
     def __str__(self):
         return '%(uid)s,%(mid)s,%(time)s,%(omid)s:%(content)s' % self.__dict__
 
+class WeiboSample:
+    def __init__(self):
+        self.id = ''
+        self.uid = ''
+        self.time = ''
+        self.ouid = ''
+        self.otime = ''
+        self.truly_retweeted = 0
+        self.num_links = 0
+        self.num_videos = 0
+        self.text = ''
+    def __str__(self):
+        return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(num_links)s,%(num_videos)s,%(text)' % self.__dict__
 def extractTextFromTag(tag):
     num_links = 0; num_videos = 0
     text = ''
@@ -270,6 +301,17 @@ def tweetLineSpliter(line):
     weibo.omid = cols[3]
     weibo.content = line[loc+1:]
     return weibo
+
+def loadTweets(fname):
+    tweets = dict()
+    if not os.path.exists(fname):
+        return dict()
+    with codecs.open(fname, 'r', 'utf-8') as fd:
+        for line in fd.readlines():
+            tweet = tweetLineSpliter(line)
+            if tweet and tweet.mid not in tweets:
+                tweets[tweet.mid] = tweet
+    return tweets
 
 def topicLineSpliter(line):
     line = line.strip()
