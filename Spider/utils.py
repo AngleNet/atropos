@@ -303,9 +303,10 @@ def tweetLineSpliter(line):
     return weibo
 
 def loadTweets(fname):
-    tweets = dict()
     if not os.path.exists(fname):
-        return dict()
+        debug('{fname} does not exists.'.format(fname=fname))
+        return None
+    tweets = dict()
     with codecs.open(fname, 'r', 'utf-8') as fd:
         for line in fd.readlines():
             tweet = tweetLineSpliter(line)
@@ -313,6 +314,11 @@ def loadTweets(fname):
                 tweets[tweet.mid] = tweet
     return tweets
 
+def getTweets(uid, user_tweets, path):
+    if uid in user_tweets:
+        return user_tweets[uid]
+    user_tweets[uid] = loadTweets(path)
+    return user_tweets[uid]
 def topicLineSpliter(line):
     line = line.strip()
     cols = line.split(',')

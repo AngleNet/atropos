@@ -11,60 +11,56 @@ import Spider.utils
 def nicknameToUser(nick_link):
     pass
 
-def generateSamplesForUser(uid, user_tweets, swd, data_dir):
+def generateSamplesForUser(uid, user_tweets, user_origin_tweets, swd, data_dir):
     tweet_path = '{data_dir}{uid}.tweet'.format(data_dir=data_dir, uid=uid)
     origin_tweet_path = '{data_dir}{uid}.origin_tweet'.format(data_dir=data_dir, uid=uid)
-    if not os.path.exists(tweet_path):
-        Spider.utils.debug('{uid}.tweet does\'t exists'.format(uid=uid))
+    tweets = Spider.utils.getTweets(uid, user_tweets, tweet_path)
+    origin_tweets = Spider.utils.getTweets(uid, user_origin_tweets, origin_tweet_path)
+    if not tweets or not origin_tweets:
         return
-    if not os.path.exists(origin_tweet_path):
-        Spider.utils.debug('{uid}.origin_tweet does not exists'.format(uid=uid))
-    origin_tweets = Spider.utils.loadTweets(origin_tweet_path)
-    origin_time = dict()
-    tweets = Spider.utils.loadTweets(tweet_path)
-    pos_samp = dict()
+    pos_samps = dict()
+    ouser_time = dict() #Upper bound
     for tweet in tweets.values():
-        if tweet.omid == '0':
+        if tweet.omid == '0' or tweet.mid in pos_samps:
             continue
+        #Positive sample
         last_hop = tweet.getContentLastHop()
-        if last_hop and last_hop.find('http') != -1:
-            last_hop = nicknameToUser(last_hop)
-            if last_hop not in user_tweets:
-                if not os.path.exists('{data_dir}{uid}.tweet'.format(data_dir=data_dir, uid=last_hop)):
-                    Spider.utils.debug('Missing tweet for last hop {uid}'.format(uid=last_hop))
-                    continue
-                else:
-                    user_tweets[last_hop] = \
-                        Spider.utils.loadTweets('{data_dir}{uid}.tweet'.format(
-                            data_dir=data_dir, uid=last_hop
-                        ))
-            if tweet.omid not in tweets[last_hop]:
-                Spider.utils.debug('Mini blog {mid} is missing'.format(mid = tweet.omid))
+        if last_hop:
+            # Last hop is not in origin_tweets. Need to load last_hop
+            last_hop = last_hop.split(',')[0]
+            if last_hop == '':
+                Spider.utils.debug('Missing last hop: {last_hop}'.format(last_hop=last_hop))
                 continue
-            origin = tweets[last_hop][tweet.omid]
-        else:
-            origin = origin_tweets[tweet.omid]
-        if origin.uid not in origin_time:
-            origin_time[origin.uid] = int(origin.time)
-        elif int(origin.time) < origin_time[origin.uid]:
-            origin_time[origin.uid] = int(origin.time)
-        samp = Spider.utils.WeiboSample()
-        samp.truly_retweeted = 1
-        samp.id = tweet.mid
-        samp.uid = tweet.uid
-        samp.time = tweet.time
-        samp.ouid = origin.uid
-        samp.otime = origin.time
-        samp.num_links, samp.num_videos, samp.text = tweet.seperateContent()
-
-
-    for  uid, ts in origin_time.items():
-        for tweet in user_tweets[uid]:
-            if int(tweet.time) < user_tweets[uid]:
-                continue
+            ouser_tweets = Spider.utils.getTweets(last_hop, user_tweets,
+                                                  '{data_dir}{uid}.tweet'.format(
+                                                      data_dir=data_dir,
+                                                      uid=uid
+                                                  ))
+            ouser_origin_tweets = Spider.utils.getTweets(last_hop, user_origin_tweets,
+                                                         '{data_dir}{uid}.tweet'.format(
+                                                             data_dir=data_dir,
+                                                             uid=uid
+                                                         ))
+            otime = 0
+            for  otweet in ouser_tweets:
+                if otweet.omid == tweet.omid and \
+                    otime > int(otweet.time):
+                    otime = int(otweet.time)
+            if otime == 0:
+                Spider.utils.
+            if last_hop not in ouser_time:
+                ouser_time[last_hop] = otime
+            elif ouser_time[last_hop] > otime:
+                ouser_time[last_hop] = otime
             samp = Spider.utils.WeiboSample()
-            if tweet.mid in pos_mid:
-                samp.truly_retweeted = 1
+            samp.id = tweet.mid
+            samp.uid = tweet.uid
+            samp.time = tweet.time
+            samp.ouid =
+        else:
+            last_hop = origin_tweets[tweet.omid].uid
+
+
 
 def generateSamples(data_dir):
     users = list()
@@ -74,7 +70,8 @@ def generateSamples(data_dir):
             if user:
                 users.append(user)
     user_tweets = dict()
+    user_origin_tweets = dict()
     with codecs.open(data_dir + 'samples', 'w', 'utf-8') as swd:
         for user in users:
-            generateSamplesForUser(user.id, user_tweets, swd, data_dir)
+            generateSamplesForUser(user.id, user_tweets, user_origin_tweets, swd, data_dir)
 
