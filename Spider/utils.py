@@ -166,7 +166,10 @@ def extractTextFromTag(tag):
     if link:
         title = tag.attrs.get('title', '')
         if is_user_link:
-            uid, link = nickLinkTouid(link)
+            try:
+                uid, link = nickLinkTouid(link)
+            except Exception:
+                uid, link = ('', '')
             text = '{text}[{uid},{link}]'.format(text =tag.text.strip(), uid=uid, link=link)
         else:
             if tag.find('i', 'ficon_cd_video'):
