@@ -8,9 +8,10 @@ import requests
 import codecs
 import bs4
 import os.path
+import json
 class Config:
     HTML_HEADERS = {'Cookie': ''}
-    SPIDE_UTIL = 201704060000
+    SPIDE_UTIL = 201704130000
     HTTP_SLEEP_SEC = 400
     DEBUG = True
 
@@ -128,6 +129,35 @@ class WeiboSample:
         self.text = ''
     def __str__(self):
         return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(num_links)s,%(num_videos)s,%(text)' % self.__dict__
+
+def nickLinkTouid(link):
+    ret_link = ''
+    tries = 0
+    while True:
+        try:
+            tries += 1
+            if tries > 4:
+                return 'NULL'
+            ret = requests.head(link, headers=Config.HTML_HEADERS, allow_redirects=False)
+            if sleepos(ret.status_code):
+                continue
+            elif ret.status_code >= 300 and ret.status_code < 400 \
+                    and ret.headers.get('location', None) and ret.headers['location'].find('?') != -1:
+                ret_link =  ret.headers['location'][:ret.headers['location'].find('?')]
+                break
+        except Exception:
+            traceback.print_exc()
+    nick = link[link.find('n')+2:link.find('?')]
+    ret = reliableGet( 'http://weibo.com/aj/v6/user/newcard?ajwvr=6&name={nick}&type=1'.format(nick=nick))
+    ret_json = json.loads(ret.text.strip()[5:-13])
+    uid = ''
+    if ret_json['msg'] == 'ok':
+        box = bs4.BeautifulSoup(strip(ret_json['data']), 'lxml')
+        for tag in box.find_all('a'):
+            if tag.attrs.get('uid', None):
+                uid = tag.attrs['uid']
+                break
+    return (uid, ret_link)
 def extractTextFromTag(tag):
     num_links = 0; num_videos = 0
     text = ''
@@ -136,7 +166,8 @@ def extractTextFromTag(tag):
     if link:
         title = tag.attrs.get('title', '')
         if is_user_link:
-            text = tag.text.strip() + '[' + link + ']'
+            uid, link = nickLinkTouid(link)
+            text = '{text}[{uid},{link}]'.format(text =tag.text.strip(), uid=uid, link=link)
         else:
             if tag.find('i', 'ficon_cd_video'):
                 num_videos = 1

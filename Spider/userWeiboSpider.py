@@ -187,11 +187,11 @@ def spideUser(user, data_dir=''):
     finally:
         spider.close()
 if __name__ == '__main__':
-    Spider.utils.loadSUB('sub.sub')
+    Spider.utils.loadSUB('../data/.sub')
     user = Spider.utils.User()
-    user.link ='http://weibo.com/u/2433489795'
-    user.page_id = '1005052433489795'
-    user.id = '2433489795'
+    user.link ='http://weibo.com/renminwang'
+    user.page_id = '1002062286908003'
+    user.id = '2286908003'
     latest = findLatestTimestamp(user, '')
     spider = UserWeiboSpider(user, latest)
     spider.start()

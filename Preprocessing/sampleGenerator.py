@@ -47,7 +47,7 @@ def generateSamplesForUser(uid, user_tweets, user_origin_tweets, swd, data_dir):
                     otime > int(otweet.time):
                     otime = int(otweet.time)
             if otime == 0:
-                Spider.utils.
+                pass
             if last_hop not in ouser_time:
                 ouser_time[last_hop] = otime
             elif ouser_time[last_hop] > otime:
@@ -56,7 +56,6 @@ def generateSamplesForUser(uid, user_tweets, user_origin_tweets, swd, data_dir):
             samp.id = tweet.mid
             samp.uid = tweet.uid
             samp.time = tweet.time
-            samp.ouid =
         else:
             last_hop = origin_tweets[tweet.omid].uid
 
