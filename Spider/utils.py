@@ -369,8 +369,9 @@ def originalUserLinkSpiliter(line):
             link.time = pair[1]
         elif pair[0] == 'pid':
             link.pid = pair[1]
-        elif pair[0] == 'omid' and pair[1] not in link.omid:
-            link.omid.append(pair[1])
+        elif pair[0] == 'omid':
+            if pair[1] not in link.omid:
+                link.omid.append(pair[1])
         else:
             debug('mysterious key word {key} in line {line}'.format(key=pair[0], line=line))
     return link
