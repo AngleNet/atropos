@@ -60,8 +60,7 @@ def cleanUserLinks(user_link_fname, user_fname, proj_dir, wd):
     """
     data_dir = proj_dir+'data/'
     res_dir = proj_dir + 'result/'
-    user_fname = data_dir + user_fname
-    users = Spider.utils.loadUsers(user_fname)
+    users = Spider.utils.loadUsers(data_dir + user_fname)
     with codecs.open(res_dir + user_fname, 'w', 'utf-8') as fd:
         for user in users:
             fd.write(str(user) + '\n')
