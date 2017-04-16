@@ -2,4 +2,6 @@
 *.origin_tweet
 *.sub
 /data/topk_topics
+/data
 *.original
+/result/*
