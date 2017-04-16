@@ -35,7 +35,7 @@ def parseHtml(html, user):
     return user
 def parseConfig(script):
     if script == '':
-        return None
+        return (None, None)
     page_id = ''
     user_id = ''
     script = str(script.contents[0])
