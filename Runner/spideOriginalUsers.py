@@ -8,7 +8,10 @@ import Spider.utils
 import Spider.userSpider
 
 if __name__ == '__main__':
-    proj_dir = sys.argv[1]
+    if len(sys.argv) < 2:
+        proj_dir = '../'
+    else:
+        proj_dir = sys.argv[1]
     res_dir = proj_dir + 'result/'
     data_dir = proj_dir + 'data/'
     Spider.utils.loadSUB(data_dir+'.sub')
@@ -19,7 +22,7 @@ if __name__ == '__main__':
                 user_link.link = 'http://weibo.com/u/{uid}'.format(uid=user_link.ouid)
                 while True:
                     try:
-                        print('Requesting ' + user_link.link)
+                        print('Requesting head of ' + user_link.link)
                         time.sleep(1)
                         ret = requests.head(user_link.link,
                                             headers=Spider.utils.Config.HTML_HEADERS,
