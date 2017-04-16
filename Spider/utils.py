@@ -386,6 +386,22 @@ def loadUsers(fname):
             if user and user.id not in users:
                 users[user.id] = user
     return users
+def loadOriginalUserLinks(fname):
+    """
+    This function will remove all duplicate lines with same uid
+    :param fname:
+    :return:
+    """
+    if not os.path.exists(fname):
+        debug('{fname} does not exists.'.format(fname=fname))
+        return None
+    links = dict()
+    with codecs.open(fname, 'r', 'utf-8') as fd:
+        for line in fd.readlines():
+            link = originalUserLinkSpiliter(line)
+            if link and link.ouid not in links:
+                links[link.ouid] = link
+    return links
 
 def loadTweets(fname):
     if not os.path.exists(fname):
