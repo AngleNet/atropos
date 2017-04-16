@@ -30,6 +30,19 @@ class Logger:
     def clean(self):
         pass
 
+class OriginalUserLink:
+    def __init__(self):
+        self.ouid = ''
+        self.link = ''
+        self.time = ''
+        self.omid = list()
+    def __str__(self):
+        rstr = '{ouid},%{link}, time:{time}'.format(ouid=self.ouid, link=self.link,
+                                                    time=self.time)
+        for i in self.omid:
+            rstr += ',omid:{omid}'.format(omid=i)
+        return rstr
+
 class User:
     def __init__(self):
         self.id = ''
@@ -148,7 +161,7 @@ def nickLinkTouid(link):
         except Exception:
             traceback.print_exc()
     nick = link[link.find('n')+2:link.find('?')]
-    ret = reliableGet( 'http://weibo.com/aj/v6/user/newcard?ajwvr=6&name={nick}&type=1'.format(nick=nick))
+    ret = reliableGet( 'http://weibo.com/aj/v6/user/newcard?ajwvr=6&name={nick}&type=1'.format(nick=nick), sleep=False)
     ret_json = json.loads(ret.text.strip()[5:-13])
     uid = ''
     if ret_json['msg'] == 'ok':
@@ -158,6 +171,7 @@ def nickLinkTouid(link):
                 uid = tag.attrs['uid']
                 break
     return (uid, ret_link)
+
 def extractTextFromTag(tag):
     num_links = 0; num_videos = 0
     text = ''
@@ -239,11 +253,13 @@ def topicNameToIndex(link):
                 return ret.headers['location'][:ret.headers['location'].find('?')]
         except Exception:
             traceback.print_exc()
-def reliableGet(link):
+
+def reliableGet(link, sleep=True):
     while True:
         try:
             print("Requesting: ", link)
-            time.sleep(1)
+            if sleep:
+                time.sleep(1)
             ret = requests.get(link, headers=Config.HTML_HEADERS)
             if sleepos(ret.status_code):
                 continue
