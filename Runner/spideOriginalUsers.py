@@ -14,7 +14,7 @@ if __name__ == '__main__':
     Spider.utils.loadSUB(data_dir+'.sub')
     user_links = Spider.utils.loadOriginalUserLinks(data_dir+ 'user_links.no_pid')
     with codecs.open(res_dir + 'user_links.new.no_pid', 'w', 'utf-8') as fd:
-        for user_link in user_links:
+        for user_link in user_links.values():
             if 'http' not in user_link.link:
                 user_link.link = 'http://weibo.com/u/{uid}'.format(uid=user_link.ouid)
                 while True:

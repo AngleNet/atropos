@@ -372,7 +372,7 @@ def originalUserLinkSpiliter(line):
         elif pair[0] == 'omid' and pair[1] not in link.omid:
             link.omid.append(pair[1])
         else:
-            debug('mysterious key word in line {line}'.format(line=line))
+            debug('mysterious key word {key} in line {line}'.format(key=pair[0], line=line))
     return link
 
 def loadUsers(fname):
