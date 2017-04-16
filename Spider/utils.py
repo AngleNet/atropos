@@ -22,12 +22,12 @@ class Logger:
     def __init__(self, server='localhost', port=13333):
         pass
     @staticmethod
-    def sent(self, msg):
+    def sent(msg):
         pass
     def _connect(self):
         pass
     @staticmethod
-    def clean(self):
+    def clean():
         pass
 
 class OriginalUserLink:
@@ -79,7 +79,9 @@ class Weibo:
         texts = self.content.split(',')[2:]
         txt = ''
         for t in texts:
-            txt += t.strip()
+            txt += t.strip() + ','
+        if txt != '':
+            txt = txt[:-1]
         hops = self._findOnpathRetweetUser(txt)
         if hops:
             return hops[0]

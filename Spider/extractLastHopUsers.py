@@ -85,6 +85,6 @@ def extractUsers(uid, links, ouids, data_dir):
             ouids.append(origin_tweets[tweet.omid].uid)
 
 if __name__ == '__main__':
-    links = list()
-    ouids = list()
-    extractUsers('1846632123', links, ouids, '')
+    data_dir = '../data/'
+    with codecs.open(data_dir + 'user_links.original', 'w', 'utf-8') as wd:
+        extractUser('1884559332', data_dir, wd)
