@@ -37,7 +37,7 @@ class OriginalUserLink:
         self.time = ''
         self.omid = list()
     def __str__(self):
-        rstr = '{ouid},%{link}, time:{time}'.format(ouid=self.ouid, link=self.link,
+        rstr = '{ouid},{link}, time:{time}'.format(ouid=self.ouid, link=self.link,
                                                     time=self.time)
         for i in self.omid:
             rstr += ',omid:{omid}'.format(omid=i)
