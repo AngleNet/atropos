@@ -364,7 +364,7 @@ def originalUserLinkSpiliter(line):
     link.ouid = cols[0]
     link.link = cols[1]
     for col in cols:
-        pair = cols.split(':')
+        pair = col.split(':')
         if pair[0] == 'time':
             link.time = pair[1]
         elif pair[0] == 'pid':
