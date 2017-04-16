@@ -363,7 +363,7 @@ def originalUserLinkSpiliter(line):
     cols = line.split(',')
     link.ouid = cols[0]
     link.link = cols[1]
-    for col in cols:
+    for col in cols[2:]:
         pair = col.split(':')
         if pair[0] == 'time':
             link.time = pair[1]
@@ -372,7 +372,7 @@ def originalUserLinkSpiliter(line):
         elif pair[0] == 'omid' and pair[1] not in link.omid:
             link.omid.append(pair[1])
         else:
-            debug('mystic key word in line {line}'.format(line=line))
+            debug('mysterious key word in line {line}'.format(line=line))
     return link
 
 def loadUsers(fname):
