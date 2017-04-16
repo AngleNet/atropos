@@ -78,6 +78,8 @@ def cleanUserLinks(user_link_fname, user_fname, proj_dir, wd):
             user_links[link.ouid].omid.extend(link.omid)
     with codecs.open(res_dir+'user_links.no_pid', 'w', 'utf-8') as fd:
         for link in user_links.values():
+            if link.ouid == '':
+                continue
             if link.ouid in users:
                 link.pid = users[link.ouid].page_id
                 wd.write(str(link) + '\n')
