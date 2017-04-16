@@ -29,6 +29,11 @@ def extractUser(uid, data_dir, wd):
                     break
             if bypass:
                 continue
+            if len(cols) < 2:
+                Spider.utils.debug('Wrong last hop: {last_hop} '
+                                   'extracted from tweet: {tweet}'.format(last_hop=last_hop,
+                                                                          tweet=str(tweet)))
+                continue
             ouser_link.ouid = cols[0]
             ouser_link.link = cols[1]
             ouser_link.omid.append(tweet.omid)
