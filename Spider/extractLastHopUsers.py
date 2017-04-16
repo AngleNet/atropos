@@ -48,41 +48,39 @@ def extractUser(uid, data_dir, wd):
                 'be a bug in userWeiboSpider'.format(omid=tweet.omid, mid=tweet.mid))
         wd.write(str(ouser_link) + '\n')
 
-def extractUsers(uid, links, ouids, data_dir):
-    tweet_fname = data_dir + uid + '.tweet'
-    origin_tweet_fname = data_dir + uid + '.origin_tweet'
-    if not os.path.exists(tweet_fname) or \
-            not os.path.exists(origin_tweet_fname):
-        Spider.utils.debug('Missing .tweet or .origin_tweet file of ' + uid)
-        return []
-    tweets = dict()
-    with codecs.open(tweet_fname, 'r', 'utf-8') as fd:
+def cleanUserLinks(user_link_fname, user_fname, data_dir, wd):
+    """
+    Remove duplicate users and find page id of each user, if the page id
+    is not spided yet, dump it to a tmp file.
+    :param user_link_fname:
+    :param user_fname:
+    :param data_dir:
+    :param wd:
+    :return:
+    """
+    user_fname = data_dir + user_fname
+    users = Spider.utils.loadUsers(user_fname)
+    user_links = dict()
+    with codecs.open(data_dir+user_link_fname, 'r','utf-8') as fd:
         for line in fd.readlines():
-            weibo = Spider.utils.tweetLineSpliter(line)
-            if weibo and weibo.mid not in tweets:
-                tweets[weibo.mid] = weibo
-    origin_tweets = dict()
-    with codecs.open(origin_tweet_fname, 'r', 'utf-8') as fd:
-        for line in fd.readlines():
-            weibo = Spider.utils.tweetLineSpliter(line)
-            if weibo and weibo.mid not in origin_tweets:
-                origin_tweets[weibo.mid] = weibo
-    for tweet in tweets.values():
-        if tweet.omid == '0':
-            continue
-        last_hop = tweet.getContentLastHop()
-        if last_hop and last_hop not in links:
-            links.append(last_hop)
-            continue
-        if tweet.omid not in origin_tweets:
-            Spider.utils.debug('User %(uid)s missing original user of tweet %(omid)s' %
-                  dict(
-                      uid = uid,
-                      omid = tweet.omid
-                  ))
-            continue
-        else:
-            ouids.append(origin_tweets[tweet.omid].uid)
+            link = Spider.utils.originalUserLinkSpiliter(line)
+            if not line:
+                continue
+            if link.ouid not in user_links:
+                user_links[link.ouid] = link
+                continue
+            if user_links[link.ouid].time == '':
+                user_links[link.ouid].time = link.time
+            elif link.time != '' and int(link.time) < int(user_links[link.ouid].time):
+                user_links[link.ouid].time = link.time
+            user_links[link.ouid].omid.extend(link.omid)
+    with codecs.open(data_dir+'user_links.no_pid', 'w', 'utf-8') as fd:
+        for link in user_links.values():
+            if link.ouid in users:
+                link.pid = users[link.ouid].page_id
+                wd.write(str(link) + '\n')
+            else:
+                fd.write(str(link) + '\n')
 
 if __name__ == '__main__':
     data_dir = '../data/'

@@ -34,11 +34,12 @@ class OriginalUserLink:
     def __init__(self):
         self.ouid = ''
         self.link = ''
+        self.pid = ''
         self.time = ''
         self.omid = list()
     def __str__(self):
-        rstr = '{ouid},{link}, time:{time}'.format(ouid=self.ouid, link=self.link,
-                                                    time=self.time)
+        rstr = '{ouid},{link},pid:{pid},time:{time}'.format(ouid=self.ouid, link=self.link,
+                                                            pid=self.pid, time=self.time)
         for i in self.omid:
             rstr += ',omid:{omid}'.format(omid=i)
         return rstr
@@ -353,6 +354,38 @@ def tweetLineSpliter(line):
     weibo.omid = cols[3]
     weibo.content = line[loc+1:]
     return weibo
+
+def originalUserLinkSpiliter(line):
+    line = line.strip()
+    if line == '':
+        return None
+    link = OriginalUserLink()
+    cols = line.split(',')
+    link.ouid = cols[0]
+    link.link = cols[1]
+    for col in cols:
+        pair = cols.split(':')
+        if pair[0] == 'time':
+            link.time = pair[1]
+        elif pair[0] == 'pid':
+            link.pid = pair[1]
+        elif pair[0] == 'omid' and pair[1] not in link.omid:
+            link.omid.append(pair[1])
+        else:
+            debug('mystic key word in line {line}'.format(line=line))
+    return link
+
+def loadUsers(fname):
+    if not os.path.exists(fname):
+        debug('{fname} does not exists.'.format(fname=fname))
+        return None
+    users = dict()
+    with codecs.open(fname, 'r', 'utf-8') as fd:
+        for line in fd.readlines():
+            user = userLineSpliter(line)
+            if user and user.id not in users:
+                users[user.id] = user
+    return users
 
 def loadTweets(fname):
     if not os.path.exists(fname):
