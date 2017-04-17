@@ -12,11 +12,7 @@ class UserWeiboSpider:
         self.latest = latest
         self.stop = False
         self.tweet_wd = codecs.open(data_dir + str(user.id)+'.tweet', 'a', 'utf-8')
-        #self.origin_tweet_wd = self.tweet_wd
         self.origin_tweet_wd  = codecs.open(data_dir + str(user.id)+'.origin_tweet', 'a', 'utf-8')
-        # import sys
-        # self.tweet_wd = sys.stdout
-        # self.origin_tweet_wd = sys.stdout
 
     def start(self):
         if self.user.link == '' or self.user.id == '' or self.user.page_id == '':
