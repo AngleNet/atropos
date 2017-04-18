@@ -21,6 +21,6 @@ if __name__ == '__main__':
     for user_link in user_links.values():
         user = Spider.utils.userLinkToUser(user_link)
         if user.id == '' or user.link == '' or user.page_id == '':
-            Spider.utils.debug('required fields are empty in {user}'.format(str(user)))
+            Spider.utils.debug('required fields are empty in {user}'.format(user=str(user)))
             continue
         Spider.userWeiboSpider.spideUser(user, data_dir)
