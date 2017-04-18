@@ -84,6 +84,7 @@ def cleanUserLinks(user_link_fname, user_fname, proj_dir, wd):
                 continue
             if link.ouid in users:
                 link.pid = users[link.ouid].page_id
+                link.link = users[link.ouid].link
                 wd.write(str(link) + '\n')
             else:
                 fd.write(str(link) + '\n')
