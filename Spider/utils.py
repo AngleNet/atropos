@@ -437,3 +437,10 @@ def writeList(fname, items):
     with codecs.open(fname, 'w', 'utf-8') as fd:
         for item in items:
             fd.write(str(item) + '\n')
+
+def userLinkToUser(user_link):
+    user = User()
+    user.id = user_link.ouid
+    user.link = user_link.link
+    user.page_id = user_link.pid
+    return user
