@@ -350,10 +350,8 @@ def tweetLineSpliter(line):
     weibo = Weibo()
     loc = line.find(':')
     cols = line[:loc].split(',')
-    if not re.match(r'[0-9]+', cols[0]) or re.match(r'[0-9]+', cols[0]).group() != cols[0]:
-        debug(line)
-        return None
-    if len(cols) < 5:
+    if not re.match(r'[0-9]+', cols[0]) or re.match(r'[0-9]+', cols[0]).group() != cols[0]\
+            or len(cols) < 4:
         debug(line)
         return None
     weibo.uid = cols[0]
