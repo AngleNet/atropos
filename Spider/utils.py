@@ -12,6 +12,8 @@ import json
 class Config:
     HTML_HEADERS = {'Cookie': ''}
     SPIDE_UTIL = 201704170000
+    SAMPLE_WINDOW_START = 201704170000
+    SAMPLE_WINDOW_END = 201704182359
     HTTP_SLEEP_SEC = 400
     DEBUG = True
 
@@ -408,14 +410,22 @@ def loadOriginalUserLinks(fname):
     return links
 
 def loadTweets(fname):
+    def timeFilter(tweet):
+        return int(tweet.time) >= Config.SAMPLE_WINDOW_START and \
+                int(tweet.time) <= Config.SAMPLE_WINDOW_END
     if not os.path.exists(fname):
         debug('{fname} does not exists.'.format(fname=fname))
         return None
+    if os.path.basename(fname).split('.')[-1] == 'original_tweet':
+        filter = lambda tweet: True
+    else:
+        filter = timeFilter
     tweets = dict()
     with codecs.open(fname, 'r', 'utf-8') as fd:
         for line in fd.readlines():
             tweet = tweetLineSpliter(line)
-            if tweet and tweet.mid not in tweets:
+            if tweet and tweet.mid not in tweets \
+                and filter(tweet):
                 tweets[tweet.mid] = tweet
     return tweets
 
