@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-#!/usr/bin/env bash
 set -x
-
-for i in {00..02}; do
+input=
+runner=
+for i in {13..13}; do
     mkdir -p $i
     cp -r atropos/* $i;
     cp $i.sub $i/data/.sub;
-    cp {input}$i $i/data/{input};
+    cp $input $i/data/$input;
     cd $i/Runner;
-    screen python {runner.py} $(pwd)/../data/
+    screen python $runner $(pwd)/../data/
     cd -
 done
+
