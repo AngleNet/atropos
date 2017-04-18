@@ -353,6 +353,9 @@ def tweetLineSpliter(line):
     if not re.match(r'[0-9]+', cols[0]) or re.match(r'[0-9]+', cols[0]).group() != cols[0]:
         debug(line)
         return None
+    if len(cols) < 5:
+        debug(line)
+        return None
     weibo.uid = cols[0]
     weibo.mid = cols[1]
     weibo.time  = cols[2]
