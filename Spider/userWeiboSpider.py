@@ -80,10 +80,12 @@ class UserWeiboSpider:
                 if 'mid' not in wrap_box.attrs or\
                         wrap_box.find('div', 'WB_cardtitle_b'):#Bypass mysterious box
                     continue
-                turn_on = True
                 mid = wrap_box.get('mid', None)
                 isforward = wrap_box.attrs.get('isforward',  None)
                 tweet_box = wrap_box.find('div', 'WB_detail')
+                if tweet_box.find('a', ignore='ignore'):
+                    continue
+                turn_on = True
                 #Spide expand box firstly.
                 omid = 0
                 omsg = None
@@ -185,9 +187,9 @@ def spideUser(user, data_dir=''):
 if __name__ == '__main__':
     Spider.utils.loadSUB('../data/.sub')
     user = Spider.utils.User()
-    user.link ='http://weibo.com/renminwang'
-    user.page_id = '1002062286908003'
-    user.id = '2286908003'
+    user.link ='http://weibo.com/u/6130034198'
+    user.page_id = '1005056130034198'
+    user.id = '6130034198'
     latest = findLatestTimestamp(user, '')
     spider = UserWeiboSpider(user, latest)
     spider.start()
