@@ -326,6 +326,9 @@ def userLineSpliter(line):
         return None
     user = User()
     cols = line.split(',')
+    if len(cols) < 9:
+        debug('wrong line for user: {line}'.format(line=line))
+        return None
     user.id = cols[0]
     user.link = cols[1]
     user.page_id = cols[2]
