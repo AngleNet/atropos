@@ -416,7 +416,7 @@ def loadTweets(fname):
     if not os.path.exists(fname):
         debug('{fname} does not exists.'.format(fname=fname))
         return None
-    if os.path.basename(fname).split('.')[-1] == 'original_tweet':
+    if os.path.basename(fname).split('.')[-1] == 'origin_tweet':
         filter = lambda tweet: True
     else:
         filter = timeFilter

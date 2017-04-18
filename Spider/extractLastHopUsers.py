@@ -44,7 +44,7 @@ def extractUser(uid, data_dir, wd):
             ouser_link.time = origin_tweet.time
         else:
             Spider.utils.debug(
-                'original weibo {omid} of weibo {mid} is not found, there must'
+                'original weibo {omid} of weibo {mid} is not found, there must '
                 'be a bug in userWeiboSpider'.format(omid=tweet.omid, mid=tweet.mid))
         wd.write(str(ouser_link) + '\n')
 
