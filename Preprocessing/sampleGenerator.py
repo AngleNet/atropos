@@ -26,10 +26,14 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
     for tweet in tweets.values():
         if tweet.omid == '0':
             continue
-        last_hop_uid = tweet.getContentLastHop()
-        if last_hop_uid == '':
+        last_hop = tweet.getContentLastHop()
+        if last_hop is not None and last_hop.split(',')[0] == '':
             #bypass incomplete tweet
             continue
+        if last_hop is not None and last_hop.split(',')[0] != '':
+            last_hop_uid = last_hop.split(',')[0]
+        else:
+            last_hop_uid = None
         samp = Spider.utils.WeiboSample()
         samp.id = tweet.mid
         samp.uid = tweet.uid

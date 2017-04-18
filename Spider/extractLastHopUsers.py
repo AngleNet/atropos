@@ -24,7 +24,7 @@ def extractUser(uid, data_dir, wd):
             bypass = False
             for col in cols:
                 if col.strip() == '':
-                    Spider.utils.debug('last hop has empty fields: {uid}'.format(uid=tweet.uid))
+                    Spider.utils.debug('last hop has empty fields: {tweet}'.format(tweet=str(tweet)))
                     bypass = True
                     break
             if bypass:
