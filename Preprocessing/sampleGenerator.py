@@ -39,7 +39,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
         samp.uid = tweet.uid
         samp.time = tweet.time
         samp.truly_retweeted = 1
-        if tweet.omid == '':
+        if tweet.omid == '0':
             samp.num_links, samp.num_videos, samp.text = tweet.seperateContent()
         else:
             samp.num_links, samp.num_videos, samp.text = \
@@ -118,7 +118,7 @@ def generateSamples(proj_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        proj_dir = '..'
+        proj_dir = '../'
     else:
         proj_dir = sys.argv[1]
     generateSamples(proj_dir)
