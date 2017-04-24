@@ -34,16 +34,6 @@ class TopicsPerDay:
         self.topics.append(topic)
 
 
-class Sample:
-    def __init__(self, date, content):
-        self.date = date
-        self.content = content
-    def keywords(self):
-        return list(jieba.cut(self.content))
-
-    def __str__(self):
-        return self.date + ', ' + self.content
-
 def loadKeywords(fn):
     kws = dict()
     with codecs.open(fn, 'r', 'utf-8') as fd:
@@ -133,7 +123,7 @@ def cacIndex(samp, topics, kws, stop_words):
     return tridx
 
 def weighter(samp, samp_kws, topic, kws):
-    if samp.content.find(topic.name) != -1:
+    if samp.text.find(topic.name) != -1:
         return topic.trindex
     intersect = list()
     for kw in samp_kws:
