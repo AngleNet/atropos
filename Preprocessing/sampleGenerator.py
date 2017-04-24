@@ -69,7 +69,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
         tmp_otweets = getTweets(hop, data_dir, origin_tweets, True)
         for tweet in tmp_tweets.values():
             found = False
-            for samp in pos_samp:
+            for samp in pos_samp.values():
                 if tweet.mid == samp.omid or tweet.omid == samp.omid:
                     samp.otime =tweet.time
                     found = True
