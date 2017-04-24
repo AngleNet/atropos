@@ -175,7 +175,7 @@ class Sample:
         self.truly_retweeted = 0
         self.num_links = 0
         self.num_videos = 0
-        self.trindx = 0
+        self.trindex = 0
     def loadFromWeibo(self,weibo):
         if weibo is None:
             return
