@@ -21,8 +21,8 @@ def getTweets(uid, data_dir, user_tweets, is_origin):
 def timeFilter(samp):
     if samp is None:
         return
-    return samp.time < Spider.utils.Config.SAMPLE_WINDOW_START or \
-                        samp.time >= Spider.utils.Config.SAMPLE_WINDOW_END
+    return int(samp.time) < Spider.utils.Config.SAMPLE_WINDOW_START or \
+                        int(samp.time)>= Spider.utils.Config.SAMPLE_WINDOW_END
 
 def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
     data_dir= proj_dir + 'data/'
