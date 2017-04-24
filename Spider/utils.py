@@ -190,6 +190,22 @@ class Sample:
     def __str__(self):
         return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s,' \
                '%(num_links)s,%(num_videos)s,%(trindex)s' % self.__dict__
+def sampleLineSpliter(line):
+    line = line.strip()
+    if line == '':
+        return None
+    samp = Sample()
+    cols = line.split(',')
+    samp.id = cols[0]
+    samp.uid = cols[1]
+    samp.time = cols[2]
+    samp.ouid = cols[3]
+    samp.otime = cols[4]
+    samp.truly_retweeted = cols[5]
+    samp.num_links = cols[6]
+    samp.num_videos = cols[7]
+    samp.trindex = cols[8]
+    return samp
 
 def nickLinkTouid(link):
     ret_link = ''
