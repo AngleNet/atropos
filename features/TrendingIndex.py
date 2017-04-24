@@ -62,7 +62,7 @@ def loadKeywords(fn):
     return kws
 
 def loadTopics(data_dir):
-    fs = glob.glob(data_dir + '*.topk_topic')
+    fs = glob.glob(data_dir + '/*.topk_topic')
     topics = dict()
     for fn in fs:
         fn = os.path.basename(fn)
