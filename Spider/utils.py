@@ -77,6 +77,11 @@ class Weibo:
         self.omid = ''
         self.content = ''
     def getContentLastHop(self):
+        """
+        Return the last hop user id if this weibo contains is retweeted, otherwise
+        None.
+        :return:
+        """
         if self.content == '':
             return None
         texts = self.content.split(',')[2:]
@@ -88,7 +93,7 @@ class Weibo:
         hops = self._findOnpathRetweetUser(txt)
         if hops:
             return hops[0]
-        return hops
+        return None
     def seperateContent(self):
         num_links = 0; num_videos = 0;  pure_text = ''
         if self.content == '' or len(self.content.split(',')) < 3:
@@ -137,6 +142,7 @@ class Weibo:
 class WeiboSample:
     def __init__(self):
         self.id = ''
+        self.omid = ''
         self.uid = ''
         self.time = ''
         self.ouid = ''
@@ -146,7 +152,7 @@ class WeiboSample:
         self.num_videos = 0
         self.text = ''
     def __str__(self):
-        return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(num_links)s,%(num_videos)s,%(text)' % self.__dict__
+        return '%(id)s,%(omid)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(num_links)s,%(num_videos)s,%(text)' % self.__dict__
 
 def nickLinkTouid(link):
     ret_link = ''
