@@ -107,11 +107,14 @@ def cacIndex(samp, topics, kws, stop_words):
     topics = sorted(topics.topics, key=lambda x: x.idx)
     tridx = 0
     samp_kws = list(jieba.cut(samp.text))
-    samp_kws = [kw for kw in samp_kws if kw.strip() != '' and kw not in stop_words ]
+    samp_kws = [kw for kw in samp_kws if kw.strip() != '' and kw not in stop_words]
     if len(samp_kws) == 0:
         return 0
     for topic in topics:
         if topic.idx not in kws:
+            continue
+        if samp.text.find(topic.name) != -1:
+            tridx += topic.trindex
             continue
         w = weighter(samp, samp_kws, topic, kws)
         tridx += w
@@ -125,8 +128,6 @@ def cacIndex(samp, topics, kws, stop_words):
     return tridx
 
 def weighter(samp, samp_kws, topic, kws):
-    if samp.text.find(topic.name) != -1:
-        return topic.trindex
     intersect = list()
     for kw in samp_kws:
         if kw not in intersect:
