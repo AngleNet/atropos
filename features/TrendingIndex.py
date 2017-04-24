@@ -28,9 +28,9 @@ class TopicsPerDay:
             name += k + ','
         name = name[:-1]
         topic = Spider.utils.Topic()
-        topic.idx = tid
-        topic.reads = rds
-        topic.name = name
+        topic.idx = tid.strip()
+        topic.reads = rds.strip()
+        topic.name = name.strip()
         self.topics.append(topic)
 
 
