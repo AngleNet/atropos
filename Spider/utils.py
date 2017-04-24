@@ -160,7 +160,8 @@ class WeiboSample:
         self.num_videos = 0
         self.text = ''
     def __str__(self):
-        return '%(id)s,%(omid)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(num_links)s,%(num_videos)s,%(text)' % self.__dict__
+        return '%(id)s,%(omid)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,' \
+               '%(truly_retweeted)s,%(num_links)s,%(num_videos)s,%(text)' % self.__dict__
 
 def nickLinkTouid(link):
     ret_link = ''
