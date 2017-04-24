@@ -66,8 +66,9 @@ class Topic:
         self.idx = ''
         self.reads = 0
         self.name = ''
+        self.trindex = 0
     def __str__(self):
-        return ('%(idx)s,%(reads)s,%(name)s' % self.__dict__)
+        return ('%(idx)s,%(reads)s,%(name)s, %(trindex)s' % self.__dict__)
 
 class Weibo:
     def __init__(self):
@@ -162,6 +163,33 @@ class WeiboSample:
     def __str__(self):
         return '%(id)s,%(omid)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,' \
                '%(truly_retweeted)s,%(num_links)s,%(num_videos)s,%(text)s' % self.__dict__
+
+
+class Sample:
+    def __init__(self):
+        self.id = ''
+        self.uid = ''
+        self.time = ''
+        self.ouid = ''
+        self.otime= ''
+        self.truly_retweeted = 0
+        self.num_links = 0
+        self.num_videos = 0
+        self.trindx = 0
+    def loadFromWeibo(self,weibo):
+        if weibo is None:
+            return
+        self.id = weibo.id
+        self.uid = weibo.uid
+        self.time = weibo.time
+        self.ouid = weibo.ouid
+        self.otime = weibo.otime
+        self.truly_retweeted = weibo.truly_retweeted
+        self.num_links = weibo.num_links
+        self.num_videos = weibo.num_videos
+    def __str__(self):
+        return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s' \
+               '%(num_links)s,%(num_videos)s,%(trindex)s' % self.__dict__
 
 def nickLinkTouid(link):
     ret_link = ''

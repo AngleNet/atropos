@@ -118,7 +118,7 @@ def generateSamples(proj_dir):
     users = Spider.utils.loadUsers(data_dir + 'user_links.new')
     user_tweets = dict()
     user_origin_tweets = dict()
-    with codecs.open(res_dir + 'sample', 'w','utf-8') as swd:
+    with codecs.open(res_dir + 'tweets.sample', 'w','utf-8') as swd:
         for user in users.values():
             generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd)
 

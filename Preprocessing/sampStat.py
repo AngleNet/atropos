@@ -18,7 +18,7 @@ if __name__ == '__main__':
     else:
         proj_dir = sys.argv[1]
     samps = dict()
-    with codecs.open('{proj_dir}result/sample'.format(proj_dir=proj_dir),
+    with codecs.open('{proj_dir}result/tweets.sample'.format(proj_dir=proj_dir),
                      'r', 'utf-8') as fd:
         for line in fd.readlines():
             samp = Spider.utils.weiboSampleLineSpliter(line)
