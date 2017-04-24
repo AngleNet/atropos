@@ -195,7 +195,7 @@ def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
         index = cacIndex(weibo, topics, kws, stop_words)
         samp = Spider.utils.Sample()
         samp.loadFromWeibo(weibo)
-        samp.trindx = index
+        samp.trindex = index
         fd.write(str(samp) + '\n')
         fd.flush()
         #print('Index: ' + str(index) + '}')

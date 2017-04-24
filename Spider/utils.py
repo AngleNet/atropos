@@ -188,7 +188,7 @@ class Sample:
         self.num_links = weibo.num_links
         self.num_videos = weibo.num_videos
     def __str__(self):
-        return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s' \
+        return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s,' \
                '%(num_links)s,%(num_videos)s,%(trindex)s' % self.__dict__
 
 def nickLinkTouid(link):
