@@ -60,7 +60,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
         if uid not in last_hops:
             last_hops.append(uid)
         samp.truly_retweeted = 1
-        pos_samp[samp.id] = pos_samp
+        pos_samp[samp.id] = samp
     neg_samp = dict()
     for hop in last_hops:
         tmp_tweets = getTweets(hop, data_dir, user_tweets, False)
