@@ -25,8 +25,7 @@ def timeFilter(samp):
                         samp.time >= Spider.utils.Config.SAMPLE_WINDOW_END
 
 def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
-    data_dir= proj_dir + 'data_dir/'
-    res_dir = proj_dir + 'res_dir/'
+    data_dir= proj_dir + 'data/'
     if user.id in user_tweets:
         tweets = user_tweets[user.id]
         origin_tweets = user_origin_tweets[user.d]
