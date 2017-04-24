@@ -111,6 +111,8 @@ def cacIndex(samp, topics, kws, stop_words):
     if len(samp_kws) == 0:
         return 0
     for topic in topics:
+        if topic.idx not in kws:
+            continue
         w = weighter(samp, samp_kws, topic, kws)
         tridx += w
         # if w > 0:
