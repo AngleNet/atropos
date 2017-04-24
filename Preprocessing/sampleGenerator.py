@@ -39,8 +39,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
     pos_samp = dict()
     last_hops = list()
     for tweet in tweets.values():
-        if tweet.omid == '0' or tweet.omid not in origin_tweets\
-                or tweet.getContentLastHop().split(',')[0] == '':
+        if tweet.omid == '0' or tweet.omid not in origin_tweets:
             continue
         samp = Spider.utils.WeiboSample()
         samp.id = tweet.mid
@@ -54,8 +53,10 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
             samp.ouid = origin_tweets[tweet.omid].uid
             samp.otime = origin_tweets[tweet.omid].time
             uid = samp.ouid
-        else:
+        elif uid != '':
             samp.ouid = uid
+        else:
+            continue
         if uid not in last_hops:
             last_hops.append(uid)
         samp.truly_retweeted = 1
