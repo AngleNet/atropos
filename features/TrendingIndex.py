@@ -65,8 +65,7 @@ def loadTopics(data_dir):
     fs = glob.glob(data_dir + '/*.topk_topic')
     topics = dict()
     for fn in fs:
-        fn = os.path.basename(fn)
-        day = fn.split('.')[0]
+        day = os.path.basename(fn).split('.')[0]
         day = day[:4] + day[5:7] + day[8:10]
         topics[day] = TopicsPerDay()
         with codecs.open(fn, 'r', 'utf-8') as fd:
