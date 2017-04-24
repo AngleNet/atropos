@@ -99,7 +99,7 @@ def loadStopWords(resource_dir):
 def cacTrindex(topics):
     for topics in topics.values():
         for topic in topics.topics:
-            topic.trindex = topic.reads / topics.reads
+            topic.trindex = int(topic.reads) / topics.reads
 
 def loadSamples(proj_dir):
     fn = proj_dir + 'data/tweets.sample'
