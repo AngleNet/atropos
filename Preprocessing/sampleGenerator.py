@@ -53,7 +53,8 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
             samp.ouid = origin_tweets[tweet.omid].uid
             samp.otime = origin_tweets[tweet.omid].time
             uid = samp.ouid
-        elif uid != '':
+        elif uid.split(',')[0] != '':
+            uid = uid.split(',')[0]
             samp.ouid = uid
         else:
             continue
