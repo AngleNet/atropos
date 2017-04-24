@@ -397,6 +397,27 @@ def originalUserLinkSpiliter(line):
             debug('mysterious key word {key} in line {line}'.format(key=pair[0], line=line))
     return link
 
+def weiboSampleLineSpliter(line):
+    line = line.strip()
+    if line == '':
+        return None
+    samp = WeiboSample()
+    cols = line.split(',')
+    samp.id = cols[0]
+    samp.omid = cols[1]
+    samp.uid = cols[2]
+    samp.time = cols[3]
+    samp.ouid = cols[4]
+    samp.otime = cols[5]
+    samp.truly_retweeted = cols[6]
+    samp.num_links = cols[7]
+    samp.num_videos = cols[8]
+    for text in cols[9:]:
+        samp.text += text + ','
+    if len(samp.text) > 0:
+        samp.text = samp.text[:-1]
+    return samp
+
 def loadUsers(fname):
     if not os.path.exists(fname):
         debug('{fname} does not exists.'.format(fname=fname))
