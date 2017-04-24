@@ -229,5 +229,5 @@ if __name__ == '__main__':
     topics = loadTopics('{proj_dir}data'.format(proj_dir=proj_dir))
     cacTrindex(topics)
     samps = loadSamples(proj_dir)
-    with codecs.open('{proj_dir}/result/sample', 'w','utf-8') as wd:
+    with codecs.open('{proj_dir}/result/sample'.format(proj_dir=proj_dir), 'w','utf-8') as wd:
         trendingIndexExecutor(samps, topics, kws, wd, stop_words)
