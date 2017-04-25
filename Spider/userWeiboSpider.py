@@ -177,7 +177,7 @@ def spideUser(user, data_dir='',spide_original=False):
     :return:
     """
     latest = findLatestTimestamp(user, data_dir)
-    spider = UserWeiboSpider(user, latest, data_dir, spide_original=False)
+    spider = UserWeiboSpider(user, latest, data_dir, spide_original)
     try:
         spider.start()
     except Exception:
