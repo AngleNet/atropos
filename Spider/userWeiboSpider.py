@@ -5,7 +5,7 @@ import os.path
 from bs4 import BeautifulSoup
 
 class UserWeiboSpider:
-    def __init__(self, user, latest, data_dir=''):
+    def __init__(self, user, latest, data_dir='',spide_original=False):
         self.user = user
         self.latest = latest
         self.pids = ''
@@ -13,7 +13,7 @@ class UserWeiboSpider:
         self.stop = False
         self.tweet_wd = codecs.open(data_dir + str(user.id)+'.tweet', 'a', 'utf-8')
         self.origin_tweet_wd  = codecs.open(data_dir + str(user.id)+'.origin_tweet', 'a', 'utf-8')
-
+        self.spide_original = spide_original
     def start(self):
         if self.user.link == '' or self.user.id == '' or self.user.page_id == '':
             return
@@ -134,7 +134,7 @@ class UserWeiboSpider:
             ret = Spider.utils.reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
                                     + mid)
             text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
-        num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box)
+        num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box, self.spide_original)
         text = re.sub(r'\\n', '', text)
         text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)
@@ -171,13 +171,13 @@ def findLatestTimestamp(user, data_dir):
         return Spider.utils.Config.SPIDE_UTIL
     return less
 
-def spideUser(user, data_dir=''):
+def spideUser(user, data_dir='',spide_original=False):
     """
     :param user:  Type User.
     :return:
     """
     latest = findLatestTimestamp(user, data_dir)
-    spider = UserWeiboSpider(user, latest, data_dir)
+    spider = UserWeiboSpider(user, latest, data_dir, spide_original=False)
     try:
         spider.start()
     except Exception:

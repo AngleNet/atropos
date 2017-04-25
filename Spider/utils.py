@@ -236,7 +236,7 @@ def nickLinkTouid(link):
                 break
     return (uid, ret_link)
 
-def extractTextFromTag(tag):
+def extractTextFromTag(tag, spide_original=False):
     num_links = 0; num_videos = 0
     text = ''
     link = tag.attrs.get('href', None)
@@ -244,11 +244,14 @@ def extractTextFromTag(tag):
     if link:
         title = tag.attrs.get('title', '')
         if is_user_link:
-            try:
-                uid, link = nickLinkTouid(link)
-            except Exception:
-                uid, link = ('', '')
-            text = '{text}[{uid},{link}]'.format(text =tag.text.strip(), uid=uid, link=link)
+            if not spide_original:
+                try:
+                    uid, link = nickLinkTouid(link)
+                except Exception:
+                    uid, link = ('', '')
+                text = '{text}[{uid},{link}]'.format(text=tag.text.strip(), uid=uid, link=link)
+            else:
+                text = tag.text.strip()
         else:
             if tag.find('i', 'ficon_cd_video'):
                 num_videos = 1
