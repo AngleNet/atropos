@@ -275,7 +275,7 @@ def extractTextFromTag(tag, spide_original=False):
             if content.strip() != '转发微博':
                 text += content.strip()
         elif isinstance(content, bs4.Tag):
-            links, videos, txt = extractTextFromTag(content)
+            links, videos, txt = extractTextFromTag(content, spide_original)
             num_links += links
             num_videos += videos
             text += txt
