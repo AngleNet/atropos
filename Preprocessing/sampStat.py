@@ -24,6 +24,10 @@ if __name__ == '__main__':
             samp = Spider.utils.weiboSampleLineSpliter(line)
             if samp and samp.id not in samps:
                 samps[samp.id] = samp
+    with codecs.open('{proj_dir}result/tweets.sample'.format(proj_dir=proj_dir),
+                     'w', 'utf-8') as fd:
+        for samp in samps.values():
+            fd.write(str(samp) + '\n')
     num_pos, num_neg = sampleSize(samps)
     print('********Samples Statistics********')
     print('Postive samples: {pos}, Negative samples: {neg}'.format(pos=num_pos, neg=num_neg))
