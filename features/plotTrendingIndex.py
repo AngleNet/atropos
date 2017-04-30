@@ -192,8 +192,25 @@ def cacCumProbNeg(negs, pos):
     x = [k for k in sorted(trindex.keys())]
     y = [trindex[_x] for _x in x]
     return (x, y, width)
+
+def trindxStatus(pos, negs):
+    data = list()
+    data.extend(pos)
+    data.extend(negs)
+    pyplot = plt
+    pyplot.hist(data, 20)
+
+    pyplot.xlabel('Length')
+    pyplot.ylabel('Frequency')
+    pyplot.title('Trending Topic')
+    pyplot.show()
+    import os
+    os.abort()
+
 if __name__ == '__main__':
     pos_data, negs_data  = loadData('../data/sample')
+    #Trending Index histogram
+    #trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
 
     ######################Double X-Window###########
