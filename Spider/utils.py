@@ -236,7 +236,7 @@ def nickLinkTouid(link):
                 break
     return (uid, ret_link)
 
-def extractTextFromTag(tag, spide_original=False):
+def extractTextFromTag(tag, spide_original=False, found=False):
     num_links = 0; num_videos = 0
     text = ''
     link = tag.attrs.get('href', None)
@@ -244,9 +244,10 @@ def extractTextFromTag(tag, spide_original=False):
     if link:
         title = tag.attrs.get('title', '')
         if is_user_link:
-            if not spide_original:
+            if not spide_original and not found:
                 try:
                     uid, link = nickLinkTouid(link)
+                    found = True
                 except Exception:
                     uid, link = ('', '')
                 text = '{text}[{uid},{link}]'.format(text=tag.text.strip(), uid=uid, link=link)
@@ -275,7 +276,7 @@ def extractTextFromTag(tag, spide_original=False):
             if content.strip() != '转发微博':
                 text += content.strip()
         elif isinstance(content, bs4.Tag):
-            links, videos, txt = extractTextFromTag(content, spide_original)
+            links, videos, txt = extractTextFromTag(content, spide_original, found)
             num_links += links
             num_videos += videos
             text += txt
@@ -543,4 +544,9 @@ def userLinkToUser(user_link):
     user.link = user_link.link
     user.page_id = user_link.pid
     return user
+
+def dictExtend(d1, d2):
+    for v in d2.keys():
+        if v not in d1:
+            d1[v] = d2[v]
 
