@@ -167,16 +167,77 @@ class TRWeiboSpider:
             num_videos = num_videos,
             text = text,
         )
+def extractRetweets(html, tweet):
+    retweets = dict()
+    if html == '':
+        return retweets
+    box = BeautifulSoup(html, 'lxml')
+    if box.find('div', 'WB_empty'):
+        return retweets
+    for wrap_box in box.find_all('div', 'list_li'):
+        if 'mid' not in wrap_box.attrs:
+            continue
+        msg = Spider.utils.Weibo
+        msg.mid = wrap_box.attrs['mid']
+        if msg.mid in retweets:
+            continue
+        text_box = wrap_box.find('div', 'WB_text')
+        msg.uid = text_box.find('a', attrs={'node-type': 'name'}).attrs['usercard'].split('=')[1]
+        from_box = wrap_box.find('div', 'WB_from')
+        msg.time = Spider.utils.tsTonumber(from_box.find('a', attrs={'node-type': 'feed_list_item_date'}).attrs['title'])
+        msg.omid = tweet.mid
+        msg.content = parseText(text_box.find('span', attrs={'node-type': 'text'}), msg.mid)
+        retweets[msg.mid] = msg
+    return retweets
+
+def parseText(text_box, mid):
+    num_urls = 0;
+    num_videos = 0
+    ltext = text_box.find('a', 'WB_text_opt')
+    if ltext:
+        print('Need to request long text')
+        ret = Spider.utils.reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
+                                       + mid)
+        text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
+    num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box, spide_original=False, found=False)
+    text = Spider.utils.strip(text)
+    text = re.sub(r'\u200b', '', text)
+    text = re.sub(r'\xa0', '', text)
+    if text == '转发微博':
+        text = ''
+    return '%(num_urls)s,%(num_videos)s,%(text)s' % dict(
+        num_urls=num_urls,
+        num_videos=num_videos,
+        text=text,
+    )
 
 def spideRetweets(tweet, pages=1):
     retweets = dict()
     if tweet.mid == '':
         return retweets
-    link = 'http://weibo.com/aj/v6/mblog/info/big?ajwvr=6&id={mid}&page={page}'.format(
-        mid = tweet.mid, page=pages
-    )
+    link ='http://weibo.com/aj/v6/mblog/info/big?ajwvr=6&id={mid}&page=1'.format(
+        mid = tweet.mid)
     ret = Spider.utils.reliableGet(link)
-    ret_json = json.loads(ret.text.strip()[5:-13])
+    ret_json = json.loads(ret.text)
+    if not ret_json.get('data') or \
+        ret_json['data'].get('html') is None or ret_json['data'].get('page') is None:
+        return retweets
+    total_pages = int(ret_json['data']['page']['totalpage'])
+    if total_pages < pages:
+        pages = total_pages
+    Spider.utils.dictExtend(retweets, extractRetweets(
+        Spider.utils.strip(ret_json['data']['html']), tweet))
+    for page in range(2, pages+1):
+        link = link[:-1] + str(page)
+        ret = Spider.utils.reliableGet(link)
+        ret_json = json.loads(ret.text)
+        if not ret_json.get('data') or \
+                        ret_json['data'].get('html') is None or ret_json['data'].get('page'):
+            continue
+        Spider.utils.dictExtend(retweets, extractRetweets(
+            Spider.utils.strip(ret_json['data']['html']), tweet))
+    return retweets
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         proj_dir = '..'
@@ -198,7 +259,7 @@ if __name__ == '__main__':
             Spider.utils.debug('Bypass topic {idx}'.format(idx=topic.idx))
             continue
         spider = TRWeiboSpider(topic)
-        tweets = spider.spide(nr_pages=2)
+        tweets = spider.spide(nr_pages=1)
         with codecs.open('{dir}/{idx}.tweets'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
                 fd.write(str(tweet) + '\n')
