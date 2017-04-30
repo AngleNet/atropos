@@ -244,19 +244,19 @@ def extractTextFromTag(tag, spide_original=False, found=False):
     if link:
         title = tag.attrs.get('title', '')
         if is_user_link:
-            if not spide_original and not found:
+            text = tag.text.strip()
+            if not spide_original and text.find('//@') != -1 and not found:
                 try:
                     uid, link = nickLinkTouid(link)
-                    found = True
                 except Exception:
                     uid, link = ('', '')
-                text = '{text}[{uid},{link}]'.format(text=tag.text.strip(), uid=uid, link=link)
+                text = '{text}[{uid},{link}]'.format(text=text, uid=uid, link=link)
             else:
-                text = tag.text.strip()
+                text = '{text}[{uid},{link}]'.format(text=text, uid='', link='')
         else:
             if tag.find('i', 'ficon_cd_video'):
                 num_videos = 1
-                if title != '秒拍视频':
+                if title.find('秒拍视频') != -1:
                     text = title
             elif tag.find('i', 'W_ficon'):
                 num_links += 1

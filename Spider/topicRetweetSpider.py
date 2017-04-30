@@ -106,11 +106,10 @@ class TRWeiboSpider:
         return ''
 
     def parseWeibo(self, html):
-        if html == '':
-            self.stop = True
-            return
-        box = BeautifulSoup(html, 'lxml')
         tweets = dict()
+        if html == '':
+            return tweets
+        box = BeautifulSoup(html, 'lxml')
         for wrap_box in box.find_all('div', 'WB_cardwrap'):
             try:
                 if 'mid' not in wrap_box.attrs:#Bypass mysterious box
@@ -122,8 +121,7 @@ class TRWeiboSpider:
                 else:
                     Spider.utils.debug(uid)
                 if wrap_box.attrs.get('isforward',  None):
-                    Spider.utils.debug('Find a retweet: {text}'.format(text=wrap_box.prettify()))
-                    import pdb; pdb.set_trace()
+                    #Spider.utils.debug('Find a retweet: {text}'.format(text=wrap_box.prettify()))
                     continue
                 tweet_box = wrap_box.find('div', 'WB_detail')
                 if tweet_box.find('a', ignore='ignore'):
@@ -134,6 +132,7 @@ class TRWeiboSpider:
                     tweets[mid] = msg
             except Exception:
                 traceback.print_exc()
+        return tweets
     def parseTweetBox(self, box, mid, uid):
         if not box or not mid or box.find('div', 'WB_empty'):
             return None
@@ -200,10 +199,10 @@ if __name__ == '__main__':
             continue
         spider = TRWeiboSpider(topic)
         tweets = spider.spide(nr_pages=2)
-        with codecs.open('{dir}/{idx}.tweets', 'w', 'utf-8') as fd:
+        with codecs.open('{dir}/{idx}.tweets'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
                 fd.write(str(tweet) + '\n')
-        with codecs.open('{dir}/{idx}.retweets', 'w', 'utf-8') as fd:
+        with codecs.open('{dir}/{idx}.retweets'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
                 retweets = spideRetweets(tweet)
                 for retweet in retweets.values():
