@@ -526,7 +526,9 @@ def topicLineSpliter(line):
     topic = Topic()
     topic.idx = cols[0]
     topic.reads = cols[1]
-    topic.name = cols[2]
+    for _ in cols[2:]:
+        topic.name += _ + ','
+    topic.name = topic.name[:-1]
     return topic
 def writeList(fname, items):
     if items is None:
@@ -541,3 +543,4 @@ def userLinkToUser(user_link):
     user.link = user_link.link
     user.page_id = user_link.pid
     return user
+
