@@ -35,7 +35,7 @@ def extractor(data_dir, pid):
 def extractLastHop(proj_dir):
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
-    pids  = [os.path.basename(fn).split('.')[0] for fn in glob.glob(data_dir + '*.retweet')]
+    pids  = [os.path.basename(fn).split('.')[0] for fn in glob.glob(data_dir + '/*.retweet')]
     users = dict()
     for pid in pids:
         Spider.utils.dictExtend(users, extractor(data_dir, pid))
