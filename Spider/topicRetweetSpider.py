@@ -252,15 +252,15 @@ if __name__ == '__main__':
                 topics[topic.idx] = topic
     #Spide topic related tweets
     for topic in topics.values():
-        if os.path.exists('{dir}/{idx}.tweets'.format(dir=result_dir, idx=topic.idx)):
+        if os.path.exists('{dir}/{idx}.tweet'.format(dir=result_dir, idx=topic.idx)):
             Spider.utils.debug('Bypass topic {idx}'.format(idx=topic.idx))
             continue
         spider = TRWeiboSpider(topic)
         tweets = spider.spide(nr_pages=1)
-        with codecs.open('{dir}/{idx}.tweets'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
+        with codecs.open('{dir}/{idx}.tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
                 fd.write(str(tweet) + '\n')
-        with codecs.open('{dir}/{idx}.retweets'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
+        with codecs.open('{dir}/{idx}.retweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
                 retweets = spideRetweets(tweet)
                 for retweet in retweets.values():
