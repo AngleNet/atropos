@@ -43,7 +43,6 @@ def extractLastHop(proj_dir):
         for user in users.values():
             fd.write(str(user) + '\n')
 
-    pass
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         proj_dir = '..'
