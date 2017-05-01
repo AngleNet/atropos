@@ -21,7 +21,7 @@ def seperate(proj_dir, pid):
             for otweet in otweets.values():
                 wd.write(str(otweet) + '\n')
         with codecs.open(otweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
-            for tweet in tweets.values():
+            for tweet in user_tweets[uid].values():
                 wd.write(str(tweet) + '\n')
 
 if __name__ == '__main__':
