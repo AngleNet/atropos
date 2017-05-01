@@ -4,8 +4,8 @@ import Spider.utils
 
 def extractor(data_dir, pid):
     users = dict()
-    tweet_fn = '{dir}/{pid}.tweet'.format(dir=data_dir, pid=pid)
-    retweet_fn = '{dir}/{pid}.retweet'.format(dir=data_dir, pid=pid)
+    tweet_fn = '{dir}/{pid}.origin_tweet'.format(dir=data_dir, pid=pid)
+    retweet_fn = '{dir}/{pid}.tweet'.format(dir=data_dir, pid=pid)
     if not os.path.exists(tweet_fn) or not os.path.exists(retweet_fn):
         return users
     tweets = Spider.utils.loadTweets(tweet_fn)
@@ -35,7 +35,7 @@ def extractor(data_dir, pid):
 def extractLastHop(proj_dir):
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
-    pids  = [os.path.basename(fn).split('.')[0] for fn in glob.glob(data_dir + '/*.retweet')]
+    pids  = [os.path.basename(fn).split('.')[0] for fn in glob.glob(data_dir + '/*.tweet')]
     users = dict()
     for pid in pids:
         Spider.utils.dictExtend(users, extractor(data_dir, pid))
