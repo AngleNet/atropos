@@ -236,7 +236,8 @@ def nickLinkTouid(link):
                 break
     return (uid, ret_link)
 
-def extractTextFromTag(tag, spide_original=False, found=False):
+def extractTextFromTag(tag, spide_original=False, found=False, last_tag_text=''):
+    last_tag_text = last_tag_text.strip()
     num_links = 0; num_videos = 0
     text = ''
     link = tag.attrs.get('href', None)
@@ -245,12 +246,13 @@ def extractTextFromTag(tag, spide_original=False, found=False):
         title = tag.attrs.get('title', '')
         if is_user_link:
             text = tag.text.strip()
-            if not spide_original and text.find('//@') != -1 and not found:
+            if not spide_original and last_tag_text[-2:] == '//' and not found:
                 try:
                     uid, link = nickLinkTouid(link)
                 except Exception:
                     uid, link = ('', '')
                 text = '{text}[{uid},{link}]'.format(text=text, uid=uid, link=link)
+                found = True
             else:
                 text = '{text}[{uid},{link}]'.format(text=text, uid='', link='')
         else:
@@ -270,19 +272,19 @@ def extractTextFromTag(tag, spide_original=False, found=False):
                     text = '%(text)s[%(link)s]' % dict(text=text, link=link)
                 else:
                     num_links += 1
-        return (num_links, num_videos, text)
+        return (num_links, num_videos, text, found)
     for content in tag.contents:
         if isinstance(content, bs4.NavigableString):
             if content.strip() != '转发微博':
                 text += content.strip()
         elif isinstance(content, bs4.Tag):
-            links, videos, txt = extractTextFromTag(content, spide_original, found)
+            links, videos, txt, found = extractTextFromTag(content, spide_original, found, text)
             num_links += links
             num_videos += videos
             text += txt
         else:
             debug("%(content)s :: <%(type)s" % {'content': content, 'type': type(content)})
-    return (num_links, num_videos, text)
+    return (num_links, num_videos, text, found)
 def debug(msg):
     if Config.DEBUG:
         caller = inspect.stack()[1]

@@ -156,7 +156,7 @@ class TRWeiboSpider:
             ret = Spider.utils.reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
                                     + mid)
             text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
-        num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box, spide_original=False, found=False)
+        num_urls, num_videos, text, found = Spider.utils.extractTextFromTag(text_box, spide_original=False, found=False)
         text = Spider.utils.strip(text)
         text = re.sub(r'\u200b', '', text)
         text = re.sub(r'\xa0', '', text)
@@ -199,7 +199,7 @@ def parseText(text_box, mid):
         ret = Spider.utils.reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
                                        + mid)
         text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
-    num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box, spide_original=False, found=False)
+    num_urls, num_videos, text, found = Spider.utils.extractTextFromTag(text_box, spide_original=False, found=False)
     text = Spider.utils.strip(text)
     text = re.sub(r'\u200b', '', text)
     text = re.sub(r'\xa0', '', text)
