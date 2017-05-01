@@ -9,6 +9,7 @@ import codecs
 import bs4
 import os.path
 import json
+
 class Config:
     HTML_HEADERS = {'Cookie': ''}
     SPIDE_UTIL = 201704250000
@@ -16,7 +17,7 @@ class Config:
     SAMPLE_WINDOW_END = 201704262359
     HTTP_SLEEP_SEC = 400
     DEBUG = True
-
+    USER_LINKS= dict()
 class Logger:
     """
     Implements a logger to sent log message to the log server.
@@ -208,6 +209,9 @@ def sampleLineSpliter(line):
     return samp
 
 def nickLinkTouid(link):
+    link = link.strip()
+    if link in Config.USER_LINKS:
+        return Config.USER_LINKS[link]
     ret_link = ''
     tries = 0
     while True:
@@ -234,6 +238,7 @@ def nickLinkTouid(link):
             if tag.attrs.get('uid', None):
                 uid = tag.attrs['uid']
                 break
+    Config.USER_LINKS[link] = (uid, ret_link)
     return (uid, ret_link)
 
 def extractTextFromTag(tag, spide_original=False, found=False, last_tag_text=''):
