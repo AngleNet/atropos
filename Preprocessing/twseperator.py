@@ -17,10 +17,10 @@ def seperate(proj_dir, pid):
     tweet_template = '{dir}/result/{uid}.tweet'
     otweet_template = '{dir}/result/{uid}.origin_tweet'
     for uid in user_tweets.keys():
-        with codecs.open(tweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
+        with codecs.open(otweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
             for otweet in otweets.values():
                 wd.write(str(otweet) + '\n')
-        with codecs.open(otweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
+        with codecs.open(tweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
             for tweet in user_tweets[uid].values():
                 wd.write(str(tweet) + '\n')
 
