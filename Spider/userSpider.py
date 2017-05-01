@@ -102,7 +102,7 @@ def spideUsers(proj_dir, ousers):
     for user in users.values():
         if user.id in ousers:
             users[user.id] = ousers[user.id]
-    with codecs.open(res_dir + 'user_links.new', 'w', 'utf-8') as f:
+    with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
             try:
                 user = spideUser(user.link)
