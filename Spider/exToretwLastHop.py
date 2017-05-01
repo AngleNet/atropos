@@ -16,6 +16,7 @@ def extractor(data_dir, pid):
         if hop is None:
             if retweet.mid not in tweets:
                 Spider.utils.debug('Original weibo {mid} is missing'.format(mid=retweet.mid))
+                continue
             else:
                 user.id = tweets[retweets.mid].uid
         elif hop != ',':
