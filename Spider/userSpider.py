@@ -97,8 +97,11 @@ def spideUsers(proj_dir, ousers):
     with codecs.open(data_dir + '/user_links', 'r','utf-8') as f:
         for line in f.readlines():
             user = Spider.utils.userLineSpliter(line)
-            if user and user.id not in  users and user.id not in ousers:
+            if user and user.id not in  users:
                 users[user.id] = user
+    for user in users.values():
+        if user.id in ousers:
+            users[user.id] = ousers[user.id]
     with codecs.open(res_dir + 'user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
             try:
