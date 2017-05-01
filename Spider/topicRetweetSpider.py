@@ -268,8 +268,4 @@ if __name__ == '__main__':
     #Spide topic related retweets
 
 
-#API
-#Get all the users that retweet this weibo.
-#http://weibo.com/aj/v6/mblog/info/big?ajwvr=6&id=4091520464056682&page=3
-
 
