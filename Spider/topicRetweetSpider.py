@@ -149,7 +149,6 @@ class TRWeiboSpider:
         return msg
 
     def parseText(self, text_box, mid):
-        num_urls = 0; num_videos = 0
         ltext = text_box.find('a', 'WB_text_opt')
         if ltext:
             print('Need to request long text')
@@ -177,7 +176,7 @@ def extractRetweets(html, tweet):
     for wrap_box in box.find_all('div', 'list_li'):
         if 'mid' not in wrap_box.attrs:
             continue
-        msg = Spider.utils.Weibo
+        msg = Spider.utils.Weibo()
         msg.mid = wrap_box.attrs['mid']
         if msg.mid in retweets:
             continue
@@ -191,8 +190,6 @@ def extractRetweets(html, tweet):
     return retweets
 
 def parseText(text_box, mid):
-    num_urls = 0;
-    num_videos = 0
     ltext = text_box.find('a', 'WB_text_opt')
     if ltext:
         print('Need to request long text')
