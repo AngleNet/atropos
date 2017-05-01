@@ -265,4 +265,3 @@ if __name__ == '__main__':
                 retweets = spideRetweets(tweet)
                 for retweet in retweets.values():
                     fd.write(str(retweet) + '\n')
-    #Spide topic related retweets
