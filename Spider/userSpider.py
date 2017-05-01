@@ -90,14 +90,14 @@ def parseUserInfo(script):
     except Exception:
         traceback.print_exc()
 
-def spideUsers(proj_dir):
+def spideUsers(proj_dir, ousers):
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
     users = dict()
     with codecs.open(data_dir + '/user_links', 'r','utf-8') as f:
         for line in f.readlines():
             user = Spider.utils.userLineSpliter(line)
-            if user and user.id not in  users:
+            if user and user.id not in  users and user.id not in ousers:
                 users[user.id] = user
     with codecs.open(res_dir + 'user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
