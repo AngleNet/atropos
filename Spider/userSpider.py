@@ -90,44 +90,19 @@ def parseUserInfo(script):
     except Exception:
         traceback.print_exc()
 
-def spideUsers(fname):
-    links = []
-    with codecs.open(fname, 'r','utf-8') as f:
+def spideUsers(proj_dir):
+    data_dir = proj_dir + '/data'
+    res_dir = proj_dir + '/result'
+    users = dict()
+    with codecs.open(data_dir + '/user_links', 'r','utf-8') as f:
         for line in f.readlines():
-            line = line.strip()
-            if line == '':
-                continue
-            link = line
-            if re.match(r'[0-9]+', link) and re.match(r'[0-9]+', link).group() == link:
-                link = 'http://weibo.com/u/' + link
-            while True:
-                try:
-                    print('Requesting ' + link)
-                    time.sleep(1)
-                    ret = requests.head(link,
-                                        headers=Spider.utils.Config.HTML_HEADERS,
-                                        allow_redirects=False)
-                    if Spider.utils.sleepos(ret.status_code):
-                        continue
-                    if ret.status_code == 302:
-                        if ret.headers['location'].find('?') == -1:
-                            link = 'http://weibo.com' + ret.headers['location']
-                        else:
-                            link = ret.headers['location'].split('?')[0]
-                    break
-                except Exception:
-                    traceback.print_exc()
-            if link not in links:
-                links.append(link)
-    #After crawled user links, comment the following.
-    # with codecs.open(fname + '.new', 'w', 'utf-8') as fd:
-    #     for link in links:
-    #         fd.write(link + '\n')
-    # return
-    with codecs.open(fname + '.new', 'w', 'utf-8') as f:
-        for link in links:
+            user = Spider.utils.userLineSpliter(line)
+            if user and user.id not in  users:
+                users[user.id] = user
+    with codecs.open(res_dir + 'user_links.new', 'w', 'utf-8') as f:
+        for user in users.values():
             try:
-                user = spideUser(link)
+                user = spideUser(user.link)
                 if user is not None:
                     f.write(str(user) + '\n')
             except Exception:

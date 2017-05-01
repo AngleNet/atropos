@@ -6,6 +6,10 @@ import Spider.utils
 import Spider.userSpider
 
 if __name__ == '__main__':
-    data_dir = sys.argv[1]
+    if len(sys.argv) < 2:
+        proj_dir = '..'
+    else:
+        proj_dir = sys.argv[1]
+    data_dir = proj_dir + '/data'
     Spider.utils.loadSUB(data_dir + '.sub')
-    Spider.userSpider.spideUsers(data_dir + 'user_links')
+    Spider.userSpider.spideUsers(proj_dir)
