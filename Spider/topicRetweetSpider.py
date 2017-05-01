@@ -266,6 +266,3 @@ if __name__ == '__main__':
                 for retweet in retweets.values():
                     fd.write(str(retweet) + '\n')
     #Spide topic related retweets
-
-
-
