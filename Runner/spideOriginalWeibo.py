@@ -22,5 +22,5 @@ if __name__ == '__main__':
             if user.id == '' or user.link == '' or user.page_id == '':
                 Spider.utils.debug('required fields are empty in {user}'.format(user=str(user)))
                 continue
-            Spider.userWeiboSpider.spideUser(user, data_dir, spide_original=True)
+            Spider.userWeiboSpider.spideUser(user, res_dir, spide_original=True)
 

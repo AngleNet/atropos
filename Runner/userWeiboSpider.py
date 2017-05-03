@@ -17,5 +17,3 @@ if __name__ == '__main__':
             user = Spider.utils.userLineSpliter(line)
             if user:
                 Spider.userWeiboSpider.spideUser(user, res_dir)
-
-
