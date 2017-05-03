@@ -5,14 +5,14 @@ import os.path
 from bs4 import BeautifulSoup
 
 class UserWeiboSpider:
-    def __init__(self, user, latest, data_dir='',spide_original=False):
+    def __init__(self, user, latest, data_dir,spide_original=False):
         self.user = user
         self.latest = latest
         self.pids = ''
         self.latest = latest
         self.stop = False
-        self.tweet_wd = codecs.open(data_dir + str(user.id)+'.tweet', 'a', 'utf-8')
-        self.origin_tweet_wd  = codecs.open(data_dir + str(user.id)+'.origin_tweet', 'a', 'utf-8')
+        self.tweet_wd = codecs.open('{dir}/{uid}.tweet'.format(dir=data_dir, uid=user.id), 'a', 'utf-8')
+        self.origin_tweet_wd  = codecs.open('{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=user.id), 'a', 'utf-8')
         self.spide_original = spide_original
     def start(self):
         if self.user.link == '' or self.user.id == '' or self.user.page_id == '':
