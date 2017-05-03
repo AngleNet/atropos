@@ -17,4 +17,4 @@ if __name__ == '__main__':
             topic = Spider.utils.topicLineSpliter(line)
             if topic:
                 spider = Spider.topicWeiboSpider.TRWeiboSpider(topic)
-                Spider.utils.writeList('{dir}/{idx}'.format(dir=data_dir, idx=topic.idx) ,spider.spide(4))
+                Spider.utils.writeList('{dir}/{idx}'.format(dir=res_dir, idx=topic.idx) ,spider.spide(4))

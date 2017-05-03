@@ -16,6 +16,6 @@ if __name__ == '__main__':
         for line in fd.readlines():
             user = Spider.utils.userLineSpliter(line)
             if user:
-                Spider.userWeiboSpider.spideUser(user, data_dir)
+                Spider.userWeiboSpider.spideUser(user, res_dir)
 
 
