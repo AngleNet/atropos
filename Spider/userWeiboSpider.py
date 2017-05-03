@@ -134,7 +134,7 @@ class UserWeiboSpider:
             ret = Spider.utils.reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
                                     + mid)
             text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
-        num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box, self.spide_original)
+        num_urls, num_videos, text, found= Spider.utils.extractTextFromTag(text_box, self.spide_original)
         text = re.sub(r'\\n', '', text)
         text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)
