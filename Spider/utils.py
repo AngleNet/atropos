@@ -330,6 +330,7 @@ def topicNameToIndex(link):
             traceback.print_exc()
 
 def reliableGet(link, sleep=True):
+    link = link.strip()
     while True:
         try:
             print("Requesting: ", link)
@@ -342,6 +343,7 @@ def reliableGet(link, sleep=True):
         except requests.RequestException:
             traceback.print_exc()
 def reliableHead(link):
+    link = link.strip()
     while True:
         try:
             print("Requesting header of: ", link)

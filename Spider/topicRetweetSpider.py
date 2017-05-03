@@ -55,7 +55,7 @@ class TRWeiboSpider:
         return contents
 
     def spideFirstPage(self, current_page, page, since_id = ''):
-        link = " http://weibo.com/p/" + self.idx +  \
+        link = "http://weibo.com/p/" + self.idx +  \
                     "?pids=Pl_Third_App__11&current_page=" + str(current_page) + "&page=" + \
                     str(page) + "&ajaxpagelet=1&ajaxpagelet_v6=1"
         if since_id == '' and current_page != 1:
