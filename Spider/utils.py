@@ -94,6 +94,8 @@ class Weibo:
             txt = txt[:-1]
         hops = self._findOnpathRetweetUser(txt)
         if hops:
+            if len(hops[0].split(',')) != 2:
+                return None
             return hops[0]
         return None
     def seperateContent(self):
