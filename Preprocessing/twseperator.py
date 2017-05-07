@@ -23,6 +23,11 @@ def seperate(proj_dir, pid):
         with codecs.open(tweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
             for tweet in user_tweets[uid].values():
                 wd.write(str(tweet) + '\n')
+    with codecs.open('{dir}/result/user_links'.format(dir=res_dir), 'w','utf-8') as fd:
+        for uid in user_tweets.keys():
+            user = Spider.utils.User()
+            user.id = uid
+            fd.write(str(user) + '\n')
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
