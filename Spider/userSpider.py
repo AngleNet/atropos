@@ -105,7 +105,7 @@ def spideUsers(proj_dir, ousers):
                     f.write(str(user) + '\n')
             except Exception:
                 failed.append(user)
-    with codecs.open(res_dir + 'user_links.failed', 'w', 'utf-8') as fd:
+    with codecs.open(res_dir + '/user_links.failed', 'w', 'utf-8') as fd:
         for user in failed:
             fd.write(str(user) + '\n')
 
