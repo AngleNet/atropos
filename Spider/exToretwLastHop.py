@@ -8,17 +8,17 @@ def extractor(data_dir, pid):
     retweet_fn = '{dir}/{pid}.tweet'.format(dir=data_dir, pid=pid)
     if not os.path.exists(tweet_fn) or not os.path.exists(retweet_fn):
         return users
-    tweets = Spider.utils.loadTweets(tweet_fn)
-    retweets = Spider.utils.loadTweets(retweet_fn)
-    for retweet in retweets.values():
+    otweets = Spider.utils.loadTweets(tweet_fn)
+    tweets = Spider.utils.loadTweets(retweet_fn)
+    for tweet in tweets.values():
         user = Spider.utils.User()
-        hop = retweet.getContentLastHop()
+        hop = tweet.getContentLastHop()
         if hop is None:
-            if retweet.mid not in tweets:
-                Spider.utils.debug('Original weibo {mid} is missing'.format(mid=retweet.mid))
+            if tweet.omid not in otweets:
+                Spider.utils.debug('Original weibo {mid} is missing'.format(mid=tweet.mid))
                 continue
             else:
-                user.id = tweets[retweets.mid].uid
+                user.id = otweets[tweet.omid].uid
         elif hop != ',':
             uid = hop.split(',')[0].strip()
             link = hop.split(',')[1].strip()
@@ -28,6 +28,7 @@ def extractor(data_dir, pid):
                 user.id = uid
                 user.link = link
         else:
+            Spider.utils.debug('Bypassing {str}'.format(str=str(tweet)))
             continue
         if user.id not in users:
             users[user.id] = user
