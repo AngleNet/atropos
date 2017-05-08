@@ -13,4 +13,6 @@ if __name__ == '__main__':
     data_dir = proj_dir + '/data'
     Spider.utils.loadSUB(data_dir + '/.sub')
     users = Spider.utils.loadUsers(proj_dir + '/resource/user_links.new')
+    if users is None:
+        users = dict()
     Spider.userSpider.spideUsers(proj_dir, users)

@@ -8,17 +8,15 @@ Need to change:
 """
 logger = Spider.utils.Logger()
 
-
-def spideUser(link):
-    if link == '':
+def spideUser(user):
+    if user.link.strip() == '':
+        user.link = Spider.utils.uidToLink(user.id)
+    if user.link == '' or user.id is None:
         return None
-    user = Spider.utils.User()
-    user.link = link
-    ret = Spider.utils.reliableGet(link)
+    ret = Spider.utils.reliableGet(user.link)
     return parseHtml(ret.text, user)
 def parseHtml(html, user):
     config = ''
-    feeds = ''
     number_box = ''
     info_box = ''
     for script in BeautifulSoup(html, 'lxml').find_all('script'):
@@ -93,23 +91,24 @@ def parseUserInfo(script):
 def spideUsers(proj_dir, ousers):
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
-    users = dict()
-    with codecs.open(data_dir + '/user_links', 'r','utf-8') as f:
-        for line in f.readlines():
-            user = Spider.utils.userLineSpliter(line)
-            if user and user.id not in  users:
-                users[user.id] = user
+    users = Spider.utils.loadUsers('{dir}/user_links'.format(dir=data_dir))
     for user in users.values():
         if user.id in ousers:
             users[user.id] = ousers[user.id]
+    failed = list()
     with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
             try:
-                user = spideUser(user.link)
+                user = spideUser(user)
+                Spider.utils.debug(str(user))
                 if user is not None:
                     f.write(str(user) + '\n')
             except Exception:
-                pass
+                failed.append(user)
+    with codecs.open(res_dir + 'user_links.failed', 'w', 'utf-8') as fd:
+        for user in failed:
+            fd.write(str(user) + '\n')
+
 if __name__ == '__main__':
     #Spider.utils.loadSUB('sub.sub')
     spideUsers('user_links')

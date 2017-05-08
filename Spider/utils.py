@@ -210,6 +210,26 @@ def sampleLineSpliter(line):
     samp.trindex = cols[8]
     return samp
 
+def uidToLink(uid):
+    if uid.strip() == '':
+        return ''
+    link = 'http://weibo.com/u/{uid}'.format(uid=uid)
+    tries = 0
+    while True:
+        try:
+            tries += 1
+            if tries > 4:
+                return ''
+            ret = requests.head(link, headers=Config.HTML_HEADERS, allow_redirects=False)
+            if sleepos(ret.status_code):
+                continue
+            elif ret.status_code >= 300 and ret.status_code < 400 \
+                    and ret.headers.get('location', None):
+                return 'http://weibo.com' + ret.headers['location']
+            else:
+                return link
+        except Exception:
+            traceback.print_exc()
 def nickLinkTouid(link):
     link = link.strip()
     if link in Config.USER_LINKS:
