@@ -23,11 +23,7 @@ def seperate(proj_dir, pid):
         with codecs.open(tweet_template.format(dir=proj_dir, uid=uid), 'a', 'utf-8') as wd:
             for tweet in user_tweets[uid].values():
                 wd.write(str(tweet) + '\n')
-    with codecs.open('{dir}/result/user_links'.format(dir=proj_dir), 'w','utf-8') as fd:
-        for uid in user_tweets.keys():
-            user = Spider.utils.User()
-            user.id = uid
-            fd.write(str(user) + '\n')
+    return user_tweets.keys()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -38,5 +34,11 @@ if __name__ == '__main__':
     res_dir = proj_dir + '/result'
 
     pids = [os.path.basename(fn).split('.')[0] for fn in glob.glob(data_dir + '/*.tweet')]
+    uids = list()
     for pid in pids:
-        seperate(proj_dir, pid)
+        uids.extend(seperate(proj_dir, pid))
+    with codecs.open('{dir}/user_links.new'.format(dir=res_dir), 'w', 'utf-8') as fd:
+        for uid in uids:
+            user = Spider.utils.User()
+            user.id = uid
+            fd.write(str(user) + '\n')
