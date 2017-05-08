@@ -4,6 +4,8 @@ import traceback, codecs, re, datetime
 import os.path
 from bs4 import BeautifulSoup
 
+# tweets = list()
+# otweets = list()
 class UserWeiboSpider:
     def __init__(self, user, latest, data_dir,spide_original=False):
         self.user = user
@@ -180,6 +182,10 @@ def spideUser(user, data_dir='',spide_original=False):
     spider = UserWeiboSpider(user, latest, data_dir, spide_original)
     try:
         spider.start()
+        # global tweets
+        # global otweets
+        # tweets = sorted(tweets, key = lambda x: x.time)
+        # otweets = sorted(otweets, key=lambda x: x.time)
     except Exception:
         traceback.print_exc()
     finally:

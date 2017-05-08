@@ -12,7 +12,7 @@ import json
 
 class Config:
     HTML_HEADERS = {'Cookie': ''}
-    SPIDE_UTIL = 201705030000
+    SPIDE_UTIL = 201705080000
     SAMPLE_WINDOW_START = 201705020000
     SAMPLE_WINDOW_END = 201705022359
     HTTP_SLEEP_SEC = 400
@@ -398,6 +398,8 @@ def strip(script):
     script = re.sub(r'\\n', '', script)
     script = re.sub(r'\\/', '/', script)
     script = re.sub(r'\\"', '"', script)
+    script = re.sub(r'\r', '',script)
+    script = re.sub('&nbsp;', '', script)
     return re.sub(r'\\t', '', script)
 def extractHtmlFromScript(script):
     script = strip(script)

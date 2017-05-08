@@ -100,7 +100,6 @@ def spideUsers(proj_dir, ousers):
         for user in users.values():
             try:
                 user = spideUser(user)
-                Spider.utils.debug(str(user))
                 if user is not None:
                     f.write(str(user) + '\n')
             except Exception:
