@@ -24,7 +24,9 @@ def timeFilter(samp):
     return int(samp.time) < Spider.utils.Config.SAMPLE_WINDOW_START or \
                         int(samp.time)>= Spider.utils.Config.SAMPLE_WINDOW_END
 
-def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
+def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir):
+    pos_samp = dict()
+    neg_samp = dict()
     data_dir= proj_dir + 'data/'
     if user.id in user_tweets:
         tweets = user_tweets[user.id]
@@ -35,8 +37,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
         origin_tweets = Spider.utils.loadTweets('{dir}{uid}.origin_tweet'.format(dir=data_dir, uid=user.id))
         user_origin_tweets[user.id] = origin_tweets
     if tweets is None:
-        return
-    pos_samp = dict()
+        return (pos_samp, neg_samp)
     last_hops = list()
     for tweet in tweets.values():
         if tweet.omid == '0' or tweet.omid not in origin_tweets:
@@ -62,7 +63,6 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
             last_hops.append(uid)
         samp.truly_retweeted = 1
         pos_samp[samp.id] = samp
-    neg_samp = dict()
     for hop in last_hops:
         tmp_tweets = getTweets(hop, data_dir, user_tweets, False)
         if tmp_tweets is None:
@@ -107,20 +107,35 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd):
             tmp.append(samp.id)
     for mid in tmp:
         del neg_samp[mid]
-    for samp in pos_samp.values():
-        swd.write(str(samp) + '\n')
-    for samp in neg_samp.values():
-        swd.write(str(samp) + '\n')
-
+    return (pos_samp, neg_samp)
 def generateSamples(proj_dir):
     data_dir = proj_dir + 'data/'
     res_dir = proj_dir + 'result/'
     users = Spider.utils.loadUsers(data_dir + 'user_links.new')
     user_tweets = dict()
     user_origin_tweets = dict()
+    pos_samps = dict()
+    neg_samps = dict()
+    for user in users.values():
+        _pos, _neg =  generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir)
+        Spider.utils.dictExtend(pos_samps, _pos)
+        Spider.utils.dictExtend(neg_samps, _neg)
+
+    ratio = 0.2
+    if len(pos_samps) < len(neg_samps)*ratio:
+        num_pos = len(pos_samps)
+        num_neg =int(num_pos/ratio)
+    else:
+        num_pos = int(len(neg_samps)*ratio)
+        num_neg = len(neg_samps)
+
     with codecs.open(res_dir + 'tweets.sample', 'w','utf-8') as swd:
-        for user in users.values():
-            generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, swd)
+        keys = [k for k in pos_samps.keys()]
+        for k in keys[:num_pos]:
+            swd.write(str(pos_samps[k]) + '\n')
+        keys = [k for k in neg_samps.keys()]
+        for k in keys[:num_neg]:
+            swd.write(str(neg_samps[k]) + '\n')
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
