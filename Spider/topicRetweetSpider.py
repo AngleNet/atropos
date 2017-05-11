@@ -258,12 +258,12 @@ if __name__ == '__main__':
             Spider.utils.debug('Bypass topic {idx}'.format(idx=topic.idx))
             continue
         spider = TRWeiboSpider(topic)
-        tweets = spider.spide(nr_pages=1)
+        tweets = spider.spide(nr_pages=3)
         with codecs.open('{dir}/{idx}.origin_tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
                 fd.write(str(tweet) + '\n')
         with codecs.open('{dir}/{idx}.tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in tweets.values():
-                retweets = spideRetweets(tweet, pages=1)
+                retweets = spideRetweets(tweet, pages=3)
                 for retweet in retweets.values():
                     fd.write(str(retweet) + '\n')
