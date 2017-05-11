@@ -547,6 +547,18 @@ def loadTweets(fname):
                 tweets[tweet.mid] = tweet
     return tweets
 
+def loadTrendingTopics(fname):
+    if not os.path.exists(fname):
+        debug('{fname} does not exists.'.format(fname=fname))
+        return None
+    topics = dict()
+    with codecs.open(fname, 'r', 'utf-8') as fd:
+        for line in fd.readlines():
+            topic = topicLineSpliter(line)
+            if topic and topic.idx not in topics:
+                topics[topic.idx] = topic
+    return topics
+
 def getTweets(uid, user_tweets, path):
     if uid in user_tweets:
         return user_tweets[uid]
