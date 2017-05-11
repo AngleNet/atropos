@@ -27,6 +27,8 @@ def parseHtml(html, user):
         elif 'Pl_Core_UserInfo__' in str(script):
             info_box = script
     user.page_id, user.id = parseConfig(config)
+    if user.page_id is None or user.id is None:
+        import pdb; pdb.set_trace()
     user.followee, user.follower, user.number_of_tweets = \
                     parseNumberBox(number_box)
     user.isCertified, user.level, user.label = parseUserInfo(info_box)
