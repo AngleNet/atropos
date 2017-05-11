@@ -7,7 +7,7 @@ if __name__ == '__main__':
     content = Spider.utils.strip(content)
 
     Spider.utils.loadSUB('../data/.sub')
-    link = 'http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=4103001491331907'
+    link = 'http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=4105478374657799'
     ret = requests.get(link, headers = Spider.utils.Config.HTML_HEADERS)
     text = ret.text
     text = re.sub(r'\\n', '', text)

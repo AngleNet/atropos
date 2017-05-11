@@ -156,9 +156,11 @@ class TRWeiboSpider:
                                     + mid)
             text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
         num_urls, num_videos, text, found = Spider.utils.extractTextFromTag(text_box, spide_original=False, found=False)
-        text = Spider.utils.strip(text)
+        text = re.sub(r'\\n', '', text)
+        text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)
         text = re.sub(r'\xa0', '', text)
+        text = Spider.utils.strip(text)
         if text == '转发微博':
             text = ''
         return '%(num_urls)s,%(num_videos)s,%(text)s' % dict(

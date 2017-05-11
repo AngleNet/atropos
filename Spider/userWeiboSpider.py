@@ -75,7 +75,7 @@ class UserWeiboSpider:
         if html == '':
             self.stop = True
             return
-        box = BeautifulSoup(html, 'lxml')
+        box = BeautifulSoup(Spider.utils.strip(html), 'lxml')
         turn_on = False
         for wrap_box in box.find_all('div', 'WB_cardwrap'):
             try:
@@ -141,6 +141,7 @@ class UserWeiboSpider:
         text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)
         text = re.sub(r'\xa0', '', text)
+        text = Spider.utils.strip(text)
         if text == '转发微博':
             text = ''
         return '%(num_urls)s,%(num_videos)s,%(text)s' % dict(
