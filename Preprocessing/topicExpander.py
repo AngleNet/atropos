@@ -7,7 +7,7 @@ def expander(pid, proj_dir, topics):
     if tweets is None:
         return
     with codecs.open('{dir}/result/{pid}'.format(dir=proj_dir, pid=pid), 'w', 'utf-8') as fd:
-        fd.write('{reads},{name}'.format(reads=topics[pid].reads, name=topics[pid].name))
+        fd.write('{reads},{name}\n'.format(reads=topics[pid].reads, name=topics[pid].name))
         for tweet in tweets.values():
             _, __, txt = tweet.seperateContent()
             fd.write(txt + '\n')
