@@ -27,8 +27,6 @@ def parseHtml(html, user):
         elif 'Pl_Core_UserInfo__' in str(script):
             info_box = script
     user.page_id, user.id = parseConfig(config)
-    if user.page_id is None or user.id is None:
-        import pdb; pdb.set_trace()
     user.followee, user.follower, user.number_of_tweets = \
                     parseNumberBox(number_box)
     user.isCertified, user.level, user.label = parseUserInfo(info_box)
@@ -100,11 +98,17 @@ def spideUsers(proj_dir, ousers):
     failed = list()
     with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
-            try:
-                user = spideUser(user)
-                if user is not None:
-                    f.write(str(user) + '\n')
-            except Exception:
+            tries = 1
+            while tries > 5:
+                try:
+                    user = spideUser(user)
+                    if user and user.id and user.page_id:
+                        f.write(str(user) + '\n')
+                        break
+                    tries += 1
+                except Exception:
+                    failed.append(user)
+            if user and (user.id is None or user.page_id is None):
                 failed.append(user)
     with codecs.open(res_dir + '/user_links.failed', 'w', 'utf-8') as fd:
         for user in failed:
