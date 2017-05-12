@@ -9,6 +9,8 @@ Need to change:
 logger = Spider.utils.Logger()
 
 def spideUser(user):
+    if user.page_id != '':
+        return user
     if user.link.strip() == '':
         user.link = Spider.utils.uidToLink(user.id)
     if user.link == '' or user.id is None:
