@@ -99,7 +99,7 @@ def spideUsers(proj_dir, ousers):
     with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
             tries = 1
-            while tries > 5:
+            while tries <= 5:
                 try:
                     user = spideUser(user)
                     if user and user.id and user.page_id:
