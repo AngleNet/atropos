@@ -113,16 +113,25 @@ class Weibo:
         return (num_links,num_videos, pure_text)
     @staticmethod
     def getPureText(text):
-        if text == '':
-            return text
-        s = text.find('[')
-        if s == -1:
-            return text
-        t = text.find(']')
-        if t < s:
-            debug('error while extract pure text from a tweet\'s content: {text}'.format(text=text))
-            return text
-        return  text[:s]+ Weibo.getPureText(text[t+1:])
+        rem = text
+        text = ''
+        while len(rem) > 0:
+            s = rem.find('[')
+            ss = rem.find('@')
+            t = rem.find(']')
+            if s != -1 and ss != -1 and ss < s and t > s:
+                text += rem[:s]
+                rem = rem[t + 1:]
+            elif t > s:
+                text += rem[:s]
+                rem = rem[t + 1:]
+            elif t >= 0:
+                text += rem[:t]
+                rem = rem[t + 1:]
+            else:
+                text += rem
+                rem = ''
+        return text
     def _findOnpathUser(self, txt):
         pass
     def _findOnpathRetweetUser(self, txt):
