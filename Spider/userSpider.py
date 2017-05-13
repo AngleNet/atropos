@@ -9,6 +9,8 @@ Need to change:
 logger = Spider.utils.Logger()
 
 def spideUser(user):
+    if user.page_id != '':
+        return user
     if user.link.strip() == '':
         user.link = Spider.utils.uidToLink(user.id)
     if user.link == '' or user.id is None:
@@ -99,7 +101,7 @@ def spideUsers(proj_dir, ousers):
     with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
         for user in users.values():
             tries = 1
-            while tries > 5:
+            while tries <= 5:
                 try:
                     user = spideUser(user)
                     if user and user.id and user.page_id:
