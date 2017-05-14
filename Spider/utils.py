@@ -131,6 +131,8 @@ class Weibo:
             else:
                 text += rem
                 rem = ''
+        text = re.sub('秒拍', '', text)
+        text = re.sub('视频', '', text)
         return text
     def _findOnpathUser(self, txt):
         pass
