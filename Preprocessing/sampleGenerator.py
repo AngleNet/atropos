@@ -122,7 +122,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topic
         del pos_samp[mid]
     tmp = list()
     for samp in neg_samp.values():
-        if timeFilter(samp) or not containsTopic(samp):
+        if timeFilter(samp):
             tmp.append(samp.id)
     for mid in tmp:
         del neg_samp[mid]
