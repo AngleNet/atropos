@@ -20,11 +20,30 @@ def getTweets(uid, data_dir, user_tweets, is_origin):
 
 def timeFilter(samp):
     if samp is None:
-        return
+        return True
     return int(samp.time) < Spider.utils.Config.SAMPLE_WINDOW_START or \
                         int(samp.time)>= Spider.utils.Config.SAMPLE_WINDOW_END
 
-def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir):
+def topicFilter(samp, topics):
+    if samp is None:
+        return True
+    for topic in topics.values():
+        if samp.find(topic.name) != -1:
+            return False
+    return True
+
+def containsTopic(samp):
+    if samp is None:
+        return False
+    text = samp.text
+    s = text.find('#')
+    if s == -1:
+        return False
+    t = text[s + 1:].find('#')
+    if t == -1:
+        return False
+    return True
+def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topics):
     pos_samp = dict()
     neg_samp = dict()
     data_dir= proj_dir + 'data/'
@@ -103,12 +122,12 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir):
         del pos_samp[mid]
     tmp = list()
     for samp in neg_samp.values():
-        if timeFilter(samp):
+        if timeFilter(samp) or not containsTopic(samp):
             tmp.append(samp.id)
     for mid in tmp:
         del neg_samp[mid]
     return (pos_samp, neg_samp)
-def generateSamples(proj_dir):
+def generateSamples(proj_dir, topics):
     data_dir = proj_dir + 'data/'
     res_dir = proj_dir + 'result/'
     users = Spider.utils.loadUsers(data_dir + 'user_links.new')
@@ -117,7 +136,7 @@ def generateSamples(proj_dir):
     pos_samps = dict()
     neg_samps = dict()
     for user in users.values():
-        _pos, _neg =  generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir)
+        _pos, _neg =  generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topics)
         Spider.utils.dictExtend(pos_samps, _pos)
         Spider.utils.dictExtend(neg_samps, _neg)
 
@@ -142,4 +161,5 @@ if __name__ == '__main__':
         proj_dir = '../'
     else:
         proj_dir = sys.argv[1]
-    generateSamples(proj_dir)
+    topics = Spider.utils.loadTrendingTopics('{dir}/data/trending_topics'.format(dir=proj_dir))
+    generateSamples(proj_dir, topics)

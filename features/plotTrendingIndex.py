@@ -124,7 +124,6 @@ def trendingIndexFilter(data, _max):
 def double(x, pos, width):
     _x = list()
     _pos = list()
-    idx = 0
     for idx in range(0, len(x)):
         if idx % 2 == 0:
             _x.append(x[idx])
