@@ -11,9 +11,9 @@ import Spider.utils
 
 def getTweets(uid, data_dir, user_tweets, is_origin):
     if is_origin:
-        fname = '/{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=uid)
+        fname = '{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=uid)
     else:
-        fname = '/{dir}/{uid}.tweet'.format(dir=data_dir, uid=uid)
+        fname = '{dir}/{uid}.tweet'.format(dir=data_dir, uid=uid)
     if uid in user_tweets:
         return user_tweets[uid]
     return Spider.utils.loadTweets(fname)
