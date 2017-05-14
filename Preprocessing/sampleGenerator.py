@@ -51,9 +51,9 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topic
         tweets = user_tweets[user.id]
         origin_tweets = user_origin_tweets[user.d]
     else:
-        tweets = Spider.utils.loadTweets('/{dir}/{uid}.tweet'.format(dir=data_dir, uid=user.id))
+        tweets = Spider.utils.loadTweets('{dir}/{uid}.tweet'.format(dir=data_dir, uid=user.id))
         user_tweets[user.id] = tweets
-        origin_tweets = Spider.utils.loadTweets('/{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=user.id))
+        origin_tweets = Spider.utils.loadTweets('{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=user.id))
         user_origin_tweets[user.id] = origin_tweets
     if tweets is None:
         return (pos_samp, neg_samp)
