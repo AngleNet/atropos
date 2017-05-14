@@ -46,14 +46,14 @@ def containsTopic(samp):
 def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topics):
     pos_samp = dict()
     neg_samp = dict()
-    data_dir= proj_dir + 'data/'
+    data_dir= proj_dir + '/data'
     if user.id in user_tweets:
         tweets = user_tweets[user.id]
         origin_tweets = user_origin_tweets[user.d]
     else:
-        tweets = Spider.utils.loadTweets('{dir}{uid}.tweet'.format(dir=data_dir, uid=user.id))
+        tweets = Spider.utils.loadTweets('/{dir}/{uid}.tweet'.format(dir=data_dir, uid=user.id))
         user_tweets[user.id] = tweets
-        origin_tweets = Spider.utils.loadTweets('{dir}{uid}.origin_tweet'.format(dir=data_dir, uid=user.id))
+        origin_tweets = Spider.utils.loadTweets('/{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=user.id))
         user_origin_tweets[user.id] = origin_tweets
     if tweets is None:
         return (pos_samp, neg_samp)
@@ -128,9 +128,9 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topic
         del neg_samp[mid]
     return (pos_samp, neg_samp)
 def generateSamples(proj_dir, topics):
-    data_dir = proj_dir + 'data/'
-    res_dir = proj_dir + 'result/'
-    users = Spider.utils.loadUsers(data_dir + 'user_links.new')
+    data_dir = proj_dir + '/data'
+    res_dir = proj_dir + '/result'
+    users = Spider.utils.loadUsers(data_dir + '/user_links.new')
     user_tweets = dict()
     user_origin_tweets = dict()
     pos_samps = dict()
@@ -148,7 +148,7 @@ def generateSamples(proj_dir, topics):
         num_pos = int(len(neg_samps)*ratio)
         num_neg = len(neg_samps)
 
-    with codecs.open(res_dir + 'tweets.sample', 'w','utf-8') as swd:
+    with codecs.open(res_dir + '/tweets.sample', 'w','utf-8') as swd:
         keys = [k for k in pos_samps.keys()]
         for k in keys[:num_pos]:
             swd.write(str(pos_samps[k]) + '\n')
@@ -158,7 +158,7 @@ def generateSamples(proj_dir, topics):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        proj_dir = '../'
+        proj_dir = '..'
     else:
         proj_dir = sys.argv[1]
     topics = Spider.utils.loadTrendingTopics('{dir}/data/trending_topics'.format(dir=proj_dir))
