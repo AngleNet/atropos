@@ -207,7 +207,7 @@ def cacParallel(samps, topics, kws):
 def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
     for weibo in weibos:
         #print('Processing: ' + str(samp), end='\n\t')
-        index = cacIndex2(weibo, topics, kws, stop_words)
+        index = cacIndex(weibo, topics, kws, stop_words)
         samp = Spider.utils.Sample()
         samp.loadFromWeibo(weibo)
         samp.trindex = index
