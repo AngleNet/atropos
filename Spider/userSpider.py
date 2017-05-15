@@ -99,11 +99,11 @@ def spideUsers(proj_dir, ousers):
             users[user.id] = ousers[user.id]
     failed = list()
     with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
-        for user in users.values():
+        for ouser in users.values():
             tries = 1
             while tries <= 5:
                 try:
-                    user = spideUser(user)
+                    user = spideUser(ouser)
                     if user and user.id and user.page_id:
                         f.write(str(user) + '\n')
                         break
@@ -111,7 +111,7 @@ def spideUsers(proj_dir, ousers):
                 except Exception:
                     failed.append(user)
             if user and (user.id is None or user.page_id is None):
-                failed.append(user)
+                failed.append(ouser)
     with codecs.open(res_dir + '/user_links.failed', 'w', 'utf-8') as fd:
         for user in failed:
             fd.write(str(user) + '\n')
