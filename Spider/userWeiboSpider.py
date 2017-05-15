@@ -4,15 +4,17 @@ import traceback, codecs, re, datetime
 import os.path
 from bs4 import BeautifulSoup
 
+# tweets = list()
+# otweets = list()
 class UserWeiboSpider:
-    def __init__(self, user, latest, data_dir='',spide_original=False):
+    def __init__(self, user, latest, data_dir,spide_original=False):
         self.user = user
         self.latest = latest
         self.pids = ''
         self.latest = latest
         self.stop = False
-        self.tweet_wd = codecs.open(data_dir + str(user.id)+'.tweet', 'a', 'utf-8')
-        self.origin_tweet_wd  = codecs.open(data_dir + str(user.id)+'.origin_tweet', 'a', 'utf-8')
+        self.tweet_wd = codecs.open('{dir}/{uid}.tweet'.format(dir=data_dir, uid=user.id), 'a', 'utf-8')
+        self.origin_tweet_wd  = codecs.open('{dir}/{uid}.origin_tweet'.format(dir=data_dir, uid=user.id), 'a', 'utf-8')
         self.spide_original = spide_original
     def start(self):
         if self.user.link == '' or self.user.id == '' or self.user.page_id == '':
@@ -73,7 +75,7 @@ class UserWeiboSpider:
         if html == '':
             self.stop = True
             return
-        box = BeautifulSoup(html, 'lxml')
+        box = BeautifulSoup(Spider.utils.strip(html), 'lxml')
         turn_on = False
         for wrap_box in box.find_all('div', 'WB_cardwrap'):
             try:
@@ -134,11 +136,12 @@ class UserWeiboSpider:
             ret = Spider.utils.reliableGet('http://www.weibo.com/p/aj/mblog/getlongtext?ajwvr=6&mid=' \
                                     + mid)
             text_box = BeautifulSoup(ret.json()['data']['html'], 'lxml').body
-        num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box, self.spide_original)
+        num_urls, num_videos, text, found= Spider.utils.extractTextFromTag(text_box, self.spide_original)
         text = re.sub(r'\\n', '', text)
         text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)
         text = re.sub(r'\xa0', '', text)
+        text = Spider.utils.strip(text)
         if text == '转发微博':
             text = ''
         return '%(num_urls)s,%(num_videos)s,%(text)s' % dict(
@@ -180,6 +183,10 @@ def spideUser(user, data_dir='',spide_original=False):
     spider = UserWeiboSpider(user, latest, data_dir, spide_original)
     try:
         spider.start()
+        # global tweets
+        # global otweets
+        # tweets = sorted(tweets, key = lambda x: x.time)
+        # otweets = sorted(otweets, key=lambda x: x.time)
     except Exception:
         traceback.print_exc()
     finally:

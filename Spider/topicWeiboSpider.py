@@ -137,7 +137,7 @@ class TRWeiboSpider:
             if text_box is None:
                 Spider.utils.debug('Tweet %(mid)s is deleted' % dict(mid=mid))
                 return ''
-        num_urls, num_videos, text = Spider.utils.extractTextFromTag(text_box)
+        num_urls, num_videos, text, found = Spider.utils.extractTextFromTag(text_box)
         text = re.sub(r'\\n', '', text)
         text = re.sub(r'\\r', '', text)
         text = re.sub(r'\u200b', '', text)

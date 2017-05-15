@@ -4,4 +4,4 @@
 /data/topk_topics
 /data
 *.original
-/result/*
+/result

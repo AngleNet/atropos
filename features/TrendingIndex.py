@@ -102,6 +102,21 @@ def loadSamples(proj_dir):
             samples.append(weibo)
     return samples
 
+def cacIndex2(samp, topics, kws, stop_words):
+    topics = topics[samp.time[:8]]
+    topics = sorted(topics.topics, key=lambda x: x.idx)
+    tridx = 0
+    samp_kws = list(jieba.cut(samp.text))
+    samp_kws = [kw for kw in samp_kws if kw.strip() != '' and kw not in stop_words]
+    if len(samp_kws) == 0:
+        return 0
+    for topic in topics:
+        if topic.idx not in kws:
+            continue
+        if samp.text.find(topic.name) != -1:
+            tridx += topic.trindex
+    return tridx
+
 def cacIndex(samp, topics, kws, stop_words):
     topics = topics[samp.time[:8]]
     topics = sorted(topics.topics, key=lambda x: x.idx)

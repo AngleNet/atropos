@@ -8,17 +8,17 @@ Need to change:
 """
 logger = Spider.utils.Logger()
 
-
-def spideUser(link):
-    if link == '':
+def spideUser(user):
+    if user.page_id != '':
+        return user
+    if user.link.strip() == '':
+        user.link = Spider.utils.uidToLink(user.id)
+    if user.link == '' or user.id is None:
         return None
-    user = Spider.utils.User()
-    user.link = link
-    ret = Spider.utils.reliableGet(link)
+    ret = Spider.utils.reliableGet(user.link)
     return parseHtml(ret.text, user)
 def parseHtml(html, user):
     config = ''
-    feeds = ''
     number_box = ''
     info_box = ''
     for script in BeautifulSoup(html, 'lxml').find_all('script'):
@@ -90,48 +90,32 @@ def parseUserInfo(script):
     except Exception:
         traceback.print_exc()
 
-def spideUsers(fname):
-    links = []
-    with codecs.open(fname, 'r','utf-8') as f:
-        for line in f.readlines():
-            line = line.strip()
-            if line == '':
-                continue
-            link = line
-            if re.match(r'[0-9]+', link) and re.match(r'[0-9]+', link).group() == link:
-                link = 'http://weibo.com/u/' + link
-            while True:
+def spideUsers(proj_dir, ousers):
+    data_dir = proj_dir + '/data'
+    res_dir = proj_dir + '/result'
+    users = Spider.utils.loadUsers('{dir}/user_links'.format(dir=data_dir))
+    for user in users.values():
+        if user.id in ousers:
+            users[user.id] = ousers[user.id]
+    failed = list()
+    with codecs.open(res_dir + '/user_links.new', 'w', 'utf-8') as f:
+        for user in users.values():
+            tries = 1
+            while tries <= 5:
                 try:
-                    print('Requesting ' + link)
-                    time.sleep(1)
-                    ret = requests.head(link,
-                                        headers=Spider.utils.Config.HTML_HEADERS,
-                                        allow_redirects=False)
-                    if Spider.utils.sleepos(ret.status_code):
-                        continue
-                    if ret.status_code == 302:
-                        if ret.headers['location'].find('?') == -1:
-                            link = 'http://weibo.com' + ret.headers['location']
-                        else:
-                            link = ret.headers['location'].split('?')[0]
-                    break
+                    user = spideUser(user)
+                    if user and user.id and user.page_id:
+                        f.write(str(user) + '\n')
+                        break
+                    tries += 1
                 except Exception:
-                    traceback.print_exc()
-            if link not in links:
-                links.append(link)
-    #After crawled user links, comment the following.
-    # with codecs.open(fname + '.new', 'w', 'utf-8') as fd:
-    #     for link in links:
-    #         fd.write(link + '\n')
-    # return
-    with codecs.open(fname + '.new', 'w', 'utf-8') as f:
-        for link in links:
-            try:
-                user = spideUser(link)
-                if user is not None:
-                    f.write(str(user) + '\n')
-            except Exception:
-                pass
+                    failed.append(user)
+            if user and (user.id is None or user.page_id is None):
+                failed.append(user)
+    with codecs.open(res_dir + '/user_links.failed', 'w', 'utf-8') as fd:
+        for user in failed:
+            fd.write(str(user) + '\n')
+
 if __name__ == '__main__':
     #Spider.utils.loadSUB('sub.sub')
     spideUsers('user_links')

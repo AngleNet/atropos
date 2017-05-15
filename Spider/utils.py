@@ -9,14 +9,15 @@ import codecs
 import bs4
 import os.path
 import json
+
 class Config:
     HTML_HEADERS = {'Cookie': ''}
-    SPIDE_UTIL = 201704250000
-    SAMPLE_WINDOW_START = 201704250000
-    SAMPLE_WINDOW_END = 201704262359
+    SPIDE_UTIL = 201705110000
+    SAMPLE_WINDOW_START = 201705110000
+    SAMPLE_WINDOW_END = 201705112359
     HTTP_SLEEP_SEC = 400
     DEBUG = True
-
+    USER_LINKS= dict()
 class Logger:
     """
     Implements a logger to sent log message to the log server.
@@ -93,6 +94,8 @@ class Weibo:
             txt = txt[:-1]
         hops = self._findOnpathRetweetUser(txt)
         if hops:
+            if len(hops[0].split(',')) != 2:
+                return None
             return hops[0]
         return None
     def seperateContent(self):
@@ -110,18 +113,27 @@ class Weibo:
         return (num_links,num_videos, pure_text)
     @staticmethod
     def getPureText(text):
+        rem = text
+        text = ''
+        while len(rem) > 0:
+            s = rem.find('[')
+            ss = rem.find('@')
+            t = rem.find(']')
+            if s != -1 and ss != -1 and ss < s and t > s:
+                text += rem[:s]
+                rem = rem[t + 1:]
+            elif t > s:
+                text += rem[:s]
+                rem = rem[t + 1:]
+            elif t >= 0:
+                text += rem[:t]
+                rem = rem[t + 1:]
+            else:
+                text += rem
+                rem = ''
         text = re.sub('秒拍', '', text)
-        text = re.sub('视频', '',text)
-        if text == '':
-            return text
-        s = text.find('[')
-        if s == -1:
-            return text
-        t = text.find(']')
-        if t < s:
-            debug('error while extract pure text from a tweet\'s content: {text}'.format(text=text))
-            return text
-        return  text[:s]+ Weibo.getPureText(text[t+1:])
+        text = re.sub('视频', '', text)
+        return text
     def _findOnpathUser(self, txt):
         pass
     def _findOnpathRetweetUser(self, txt):
@@ -209,7 +221,30 @@ def sampleLineSpliter(line):
     samp.trindex = cols[8]
     return samp
 
+def uidToLink(uid):
+    if uid.strip() == '':
+        return ''
+    link = 'http://weibo.com/u/{uid}'.format(uid=uid)
+    tries = 0
+    while True:
+        try:
+            tries += 1
+            if tries > 4:
+                return ''
+            ret = requests.head(link, headers=Config.HTML_HEADERS, allow_redirects=False)
+            if sleepos(ret.status_code):
+                continue
+            elif ret.status_code >= 300 and ret.status_code < 400 \
+                    and ret.headers.get('location', None):
+                return 'http://weibo.com' + ret.headers['location']
+            else:
+                return link
+        except Exception:
+            traceback.print_exc()
 def nickLinkTouid(link):
+    link = link.strip()
+    if link in Config.USER_LINKS:
+        return Config.USER_LINKS[link]
     ret_link = ''
     tries = 0
     while True:
@@ -236,9 +271,11 @@ def nickLinkTouid(link):
             if tag.attrs.get('uid', None):
                 uid = tag.attrs['uid']
                 break
+    Config.USER_LINKS[link] = (uid, ret_link)
     return (uid, ret_link)
 
-def extractTextFromTag(tag, spide_original=False):
+def extractTextFromTag(tag, spide_original=False, found=False, last_tag_text=''):
+    last_tag_text = last_tag_text.strip()
     num_links = 0; num_videos = 0
     text = ''
     link = tag.attrs.get('href', None)
@@ -246,18 +283,20 @@ def extractTextFromTag(tag, spide_original=False):
     if link:
         title = tag.attrs.get('title', '')
         if is_user_link:
-            if not spide_original:
+            text = tag.text.strip()
+            if not spide_original and last_tag_text[-2:] == '//' and not found:
                 try:
                     uid, link = nickLinkTouid(link)
                 except Exception:
                     uid, link = ('', '')
-                text = '{text}[{uid},{link}]'.format(text=tag.text.strip(), uid=uid, link=link)
+                text = '{text}[{uid},{link}]'.format(text=text, uid=uid, link=link)
+                found = True
             else:
-                text = tag.text.strip()
+                text = '{text}[{uid},{link}]'.format(text=text, uid='', link='')
         else:
             if tag.find('i', 'ficon_cd_video'):
                 num_videos = 1
-                if title != '秒拍视频':
+                if title.find('秒拍视频') != -1:
                     text = title
             elif tag.find('i', 'W_ficon'):
                 num_links += 1
@@ -271,19 +310,19 @@ def extractTextFromTag(tag, spide_original=False):
                     text = '%(text)s[%(link)s]' % dict(text=text, link=link)
                 else:
                     num_links += 1
-        return (num_links, num_videos, text)
+        return (num_links, num_videos, text, found)
     for content in tag.contents:
         if isinstance(content, bs4.NavigableString):
             if content.strip() != '转发微博':
                 text += content.strip()
         elif isinstance(content, bs4.Tag):
-            links, videos, txt = extractTextFromTag(content, spide_original)
+            links, videos, txt, found = extractTextFromTag(content, spide_original, found, text)
             num_links += links
             num_videos += videos
             text += txt
         else:
             debug("%(content)s :: <%(type)s" % {'content': content, 'type': type(content)})
-    return (num_links, num_videos, text)
+    return (num_links, num_videos, text, found)
 def debug(msg):
     if Config.DEBUG:
         caller = inspect.stack()[1]
@@ -324,6 +363,7 @@ def topicNameToIndex(link):
             traceback.print_exc()
 
 def reliableGet(link, sleep=True):
+    link = link.strip()
     while True:
         try:
             print("Requesting: ", link)
@@ -336,6 +376,7 @@ def reliableGet(link, sleep=True):
         except requests.RequestException:
             traceback.print_exc()
 def reliableHead(link):
+    link = link.strip()
     while True:
         try:
             print("Requesting header of: ", link)
@@ -368,6 +409,8 @@ def strip(script):
     script = re.sub(r'\\n', '', script)
     script = re.sub(r'\\/', '/', script)
     script = re.sub(r'\\"', '"', script)
+    script = re.sub(r'\r', '',script)
+    script = re.sub('&nbsp;', '', script)
     return re.sub(r'\\t', '', script)
 def extractHtmlFromScript(script):
     script = strip(script)
@@ -515,6 +558,18 @@ def loadTweets(fname):
                 tweets[tweet.mid] = tweet
     return tweets
 
+def loadTrendingTopics(fname):
+    if not os.path.exists(fname):
+        debug('{fname} does not exists.'.format(fname=fname))
+        return None
+    topics = dict()
+    with codecs.open(fname, 'r', 'utf-8') as fd:
+        for line in fd.readlines():
+            topic = topicLineSpliter(line)
+            if topic and topic.idx not in topics:
+                topics[topic.idx] = topic
+    return topics
+
 def getTweets(uid, user_tweets, path):
     if uid in user_tweets:
         return user_tweets[uid]
@@ -528,7 +583,9 @@ def topicLineSpliter(line):
     topic = Topic()
     topic.idx = cols[0]
     topic.reads = cols[1]
-    topic.name = cols[2]
+    for _ in cols[2:]:
+        topic.name += _ + ','
+    topic.name = topic.name[:-1]
     return topic
 def writeList(fname, items):
     if items is None:
@@ -543,3 +600,9 @@ def userLinkToUser(user_link):
     user.link = user_link.link
     user.page_id = user_link.pid
     return user
+
+def dictExtend(d1, d2):
+    for v in d2.keys():
+        if v not in d1:
+            d1[v] = d2[v]
+
