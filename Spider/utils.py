@@ -110,6 +110,8 @@ class Weibo:
         return (num_links,num_videos, pure_text)
     @staticmethod
     def getPureText(text):
+        text = re.sub('秒拍', '', text)
+        text = re.sub('视频', '',text)
         if text == '':
             return text
         s = text.find('[')
