@@ -204,6 +204,24 @@ class Sample:
     def __str__(self):
         return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s,' \
                '%(num_links)s,%(num_videos)s,%(trindex)s' % self.__dict__
+
+class TrainningSample:
+    def __init__(self):
+        self.mid = ''
+        self.certified = 0
+        self.num_followers = 0
+        self.num_urls = 0
+        self.num_videos = 0
+        self.content_len = 0
+        self.similarity = 0
+        self.retweet_rate = 0
+        self.interact_rate = 0
+
+    def __str__(self):
+        return '%(mid)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
+               '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
+               '%(interact_rate)s' % self.__dict__
+
 def sampleLineSpliter(line):
     line = line.strip()
     if line == '':
