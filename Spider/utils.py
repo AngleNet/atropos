@@ -646,6 +646,4 @@ def dictExtend(d1, d2):
     for v in d2.keys():
         if v not in d1:
             d1[v] = d2[v]
-if __name__ == '__main__':
-    x = 1
 

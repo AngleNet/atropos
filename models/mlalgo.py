@@ -49,7 +49,7 @@ def preprocessing(dataset):
     _labels = ['num_followers', 'num_urls', 'content_len']
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     for _label in _labels:
-        dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values)
+        dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -71,28 +71,30 @@ def logToFile(fd, msg):
 
 
 def runAndCheckCV(model, dataset, target, fname):
-    scores = ms.cross_val_score(model, dataset, target, cv=10)
+    Spider.utils.debug('Modeling {model}'.format(model=str(model.__class__)))
+    scores = ms.cross_val_score(model, dataset.values, target.values, cv=10)
     with codecs.open(fname, 'w', 'utf-8') as fd:
-        logToFile(fd, str(scores))
+        logToFile(fd, str(list(scores)) + '\n')
         logToFile(fd, "Accuracy: %0.4f (+/- %0.4f)\n" % (scores.mean(), scores.std() * 2))
+    Spider.utils.debug("Accuracy: %0.4f (+/- %0.4f)\n" % (scores.mean(), scores.std() * 2))
 
 def cvModels(dataset, target, res_dir):
     runLR(dataset, target, res_dir)
     runSVM(dataset, target, res_dir)
     runBayes(dataset, target, res_dir)
 
-def evalRocCurve(dataset, target):
+def evalRocCurve(features, target):
     random_state = np.random.RandomState(0)
     model = LogisticRegression()
     #model = svm.SVC(kernel='linear', random_state=random_state, probability=True)
     #model = naive_bayes.GaussianNB()
     fold = 0
     for train, test in ms.KFold(n_splits=5, shuffle=True,
-                                random_state=random_state).split(dataset):
+                                random_state=random_state).split(features):
         fold += 1
         print("Running fold %d" % fold)
         train_dataset, train_target, test_dataset, test_target = \
-            dataset[train], target[train], dataset[test], target[test]
+            features.values[train], target.values[train], features.values[test], target.values[test]
         #model.classes_ gives the classes order
         prob = model.fit(train_dataset, train_target).predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
@@ -109,18 +111,31 @@ def evalRocCurve(dataset, target):
 
 #Part I
 #Precision, Recall, F1 score
-def cacModelPrecision(dataset, target):
+def cacModelPrecision(features, target, model):
     rand = np.random.RandomState(0)
-    model = LogisticRegression()
-    #model = svm.SVC(kernel='linear', random_state=rand)
-    #model = naive_bayes.GaussianNB()
+    if model == 'lr':
+        model = LogisticRegression()
+        Spider.utils.debug('Running LR')
+    elif model == 'svm':
+        model = svm.SVC(kernel='linear', random_state=rand)
+        Spider.utils.debug('Running SVM')
+    elif model == 'bayes':
+        model = naive_bayes.GaussianNB()
+        Spider.utils.debug('Running Bayes')
+    else:
+        Spider.utils.debug('Bad model {model}'.format(model=model))
+        return
     train_dataset, test_dataset, train_target, test_target= \
-        ms.train_test_split(dataset, target, test_size=0.1, random_state=rand)
+        ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     target_pred = model.fit(train_dataset, train_target).predict(test_dataset)
     precision, recall, f1_score, support = metrics.precision_recall_fscore_support(
         test_target, target_pred, average='binary'
     )
-    print(precision, recall, f1_score)
+    Spider.utils.debug('Precision: {prec}%, Recall: {recall}%, F1: {fscore}%'.format(
+        prec=precision*100,
+        recall=recall*100,
+        fscore=f1_score*100,
+    ))
 
 #Part II
 def plotModelRoc(dataset, target):
@@ -143,7 +158,7 @@ def plotModelRoc(dataset, target):
     plt.ylim([-0.05, 1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic example')
+    plt.title('')
     plt.legend(loc="lower right")
     plt.show()
 
@@ -207,10 +222,10 @@ if __name__ == '__main__':
     }
     features = dataset.filter(items=feature_cases['base'])
     target = dataset['pos']
-    # cvModels(features, target, res_dir)
-    # evalRocCurve(features, target)
-    # cacModelPrecision(features, target)
-    # plotModelRoc(features, target)
+    #cvModels(features, target, res_dir)
+    #evalRocCurve(features, target)
+    #cacModelPrecision(features, target, 'lr')
+    #plotModelRoc(features, target)
     plotModelRoc2(dataset, feature_cases)
 
 
