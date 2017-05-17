@@ -207,7 +207,7 @@ class Sample:
 
 class TrainningSample:
     def __init__(self):
-        self.mid = ''
+        self.id = ''
         self.certified = 0
         self.num_followers = 0
         self.num_urls = 0
@@ -216,11 +216,32 @@ class TrainningSample:
         self.similarity = 0
         self.retweet_rate = 0
         self.interact_rate = 0
+        self.trending_index = 0
 
     def __str__(self):
-        return '%(mid)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
+        return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
                '%(interact_rate)s' % self.__dict__
+
+    @staticmethod
+    def lineSpliter(line):
+        line = line.strip()
+        if line == '':
+            return None
+        samp = TrainningSample()
+        cols = line.split(',')
+        samp.id = cols[0]
+        samp.certified = int(cols[1])
+        samp.num_followers = int(cols[2])
+        samp.num_urls = int(cols[3])
+        samp.num_videos = int(cols[4])
+        samp.content_len =  int(cols[5])
+        samp.similarity = float(cols[6])
+        samp.retweet_rate = float(cols[7])
+        samp.interact_rate = float(cols[8])
+        samp.trending_index = float(cols[9])
+        return samp
+
 
 def sampleLineSpliter(line):
     line = line.strip()
