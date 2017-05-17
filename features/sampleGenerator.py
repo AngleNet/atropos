@@ -28,8 +28,8 @@ if __name__ == '__main__':
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
 
-    weibo_samps = loadWeiboSample(data_dir + '/tweet.sample')
-    trdx_samps = loadTrindexSample(data_dir + '/sample.trindex')
+    weibo_samps = loadWeiboSample(data_dir + '/tweets.sample')
+    trdx_samps = loadTrindexSample(data_dir + '/samples.trindex')
     users = Spider.utils.loadUsers(data_dir + '/users')
     samps = dict()
 
