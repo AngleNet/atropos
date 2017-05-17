@@ -222,7 +222,7 @@ class TrainningSample:
     def __str__(self):
         return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
-               '%(interact_rate)s,%(pos)s' % self.__dict__
+               '%(interact_rate)s,%(trending_index)s,%(pos)s' % self.__dict__
 
     @staticmethod
     def lineSpliter(line):
