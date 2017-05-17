@@ -206,7 +206,7 @@ if __name__ == '__main__':
     else:
         proj_dir = sys.argv[1]
 
-    dataset = loadDataSet('{dir}/data/sample.train'.format(dir=proj_dir))
+    dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     neg_data = np.random.permutation(__neg_data)
     #neg_label = __neg_label[:pos_data.shape[0]]
     neg_label = __neg_label

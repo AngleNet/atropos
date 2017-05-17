@@ -67,7 +67,7 @@ if __name__ == '__main__':
         if int(samp.truly_retweeted) == 1:
             _samp.pos = 1
 
-    with codecs.open('{dir}/sample.train'.format(dir=res_dir), 'w', 'utf-8') as fd:
+    with codecs.open('{dir}/samples.train'.format(dir=res_dir), 'w', 'utf-8') as fd:
         for samp in samps.values():
             fd.write(str(samp) + '\n')
 
