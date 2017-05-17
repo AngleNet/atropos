@@ -41,13 +41,13 @@ if __name__ == '__main__':
     for samp in weibo_samps.values():
         _samp = Spider.utils.TrainningSample()
         _samp.id = samp.id
-        if samp.uid != '' and samp.uid in users:
-                _samp.certified = int(users[samp.uid].isCertified)
-                _samp.num_followers = int(users[samp.uid].follower)
+        if samp.ouid != '' and samp.ouid in users:
+                _samp.certified = int(users[samp.ouid].isCertified)
+                _samp.num_followers = int(users[samp.ouid].follower)
         else:
             Spider.utils.debug('Personal information of user {uid} not found'
                                ', setting to 0'.format(
-                uid=samp.uid
+                uid=samp.ouid
             ))
         _samp.num_urls = int(samp.num_links)
         _samp.num_videos = int(samp.num_videos)
