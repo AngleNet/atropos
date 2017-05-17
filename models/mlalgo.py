@@ -49,7 +49,7 @@ def preprocessing(dataset):
     _labels = ['num_followers', 'num_urls', 'content_len']
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     for _label in _labels:
-        dataset[_label] = dataset[_label].apply(min_max_scaler.fit_transform)
+        dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values)
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -207,10 +207,10 @@ if __name__ == '__main__':
     }
     features = dataset.filter(items=feature_cases['base'])
     target = dataset['pos']
-    cvModels(features, target, res_dir)
-    evalRocCurve(features, target)
-    cacModelPrecision(features, target)
-    plotModelRoc(features, target)
+    # cvModels(features, target, res_dir)
+    # evalRocCurve(features, target)
+    # cacModelPrecision(features, target)
+    # plotModelRoc(features, target)
     plotModelRoc2(dataset, feature_cases)
 
 
