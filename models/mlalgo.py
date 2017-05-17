@@ -1,7 +1,7 @@
 """
 """
 import numpy as np
-import codecs
+import codecs, sklearn
 from sklearn.linear_model import LogisticRegression
 import sklearn.model_selection as ms
 from sklearn import svm
@@ -44,31 +44,25 @@ def loadDataSet(fn):
                 Spider.utils.debug('Bypassing line: {line}'.format(line=line))
     return pandas.DataFrame(__dataset)
 
-def autoNorm(dataSet, column):
-    if column >= dataSet.shape[1]:
-        debug("Wrong column number, could be too large.")
-        import os; os.abort()
-    _dataSet = dataSet[:, column]
-    minVals = _dataSet.min(0)
-    maxVals = _dataSet.max(0)
-    ranges = maxVals - minVals
-    norm = _dataSet - np.tile(minVals, _dataSet.shape[0])
-    norm = norm / np.tile(ranges, _dataSet.shape[0])
-    dataSet[:, column] = norm
-    return dataSet
+def preprocessing(dataset):
+    dataset = dataset.sample(n=dataset.shape[0])
+    _labels = ['num_followers', 'num_urls', 'content_len']
+    min_max_scaler = sklearn.preprocessing.MinMaxScaler()
+    for _label in _labels:
+        dataset[_label] = dataset[_label].apply(min_max_scaler.fit_transform)
+    return dataset
 
-
-def runLR(dataset, target):
+def runLR(dataset, target, res_dir):
     model = LogisticRegression()
-    runAndCheckCV(model, dataset, target, 'lr')
+    runAndCheckCV(model, dataset, target, res_dir + '/lr')
 
-def runSVM(dataset, target):
+def runSVM(dataset, target, res_dir):
     model = svm.SVC(kernel='linear', C=1)
-    runAndCheckCV(model, dataset, target, 'svm')
+    runAndCheckCV(model, dataset, target, res_dir + '/svm')
 
-def runBayes(dataset, target):
+def runBayes(dataset, target, res_dir):
     model = naive_bayes.GaussianNB()
-    runAndCheckCV(model, dataset, target, 'bayes')
+    runAndCheckCV(model, dataset, target, res_dir + '/bayes')
 
 def logToFile(fd, msg):
     if not fd:
@@ -82,10 +76,10 @@ def runAndCheckCV(model, dataset, target, fname):
         logToFile(fd, str(scores))
         logToFile(fd, "Accuracy: %0.4f (+/- %0.4f)\n" % (scores.mean(), scores.std() * 2))
 
-def cvModels(dataset, target):
-    runLR(dataset, target)
-    runSVM(dataset, target)
-    runBayes(dataset, target)
+def cvModels(dataset, target, res_dir):
+    runLR(dataset, target, res_dir)
+    runSVM(dataset, target, res_dir)
+    runBayes(dataset, target, res_dir)
 
 def evalRocCurve(dataset, target):
     random_state = np.random.RandomState(0)
@@ -139,7 +133,7 @@ def plotModelRoc(dataset, target):
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(dataset, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
-        debug('Modeling %s' % cls_name)
+        Spider.utils.debug('Modeling %s' % cls_name)
         prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
@@ -153,35 +147,31 @@ def plotModelRoc(dataset, target):
     plt.legend(loc="lower right")
     plt.show()
 
-def plotModelRoc2(dataset, target):
+def plotModelRoc2(dataset, feature_cases):
+    # Case: base
+    features = dataset.filter(items=feature_cases['base'])
     rand = np.random.RandomState(0)
     classifiers = {
         'LR': LogisticRegression(),
-
         'SVM':  svm.SVC(kernel='linear', random_state=rand, probability=True),
         'Bayes': naive_bayes.GaussianNB(),
     }
     train_dataset, test_dataset, train_target, test_target = \
-        ms.train_test_split(dataset, target, test_size=0.1, random_state=rand)
+        ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
-        debug('Modeling %s' % cls_name)
+        Spider.utils.debug('Modeling %s' % cls_name)
         prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, ':',  lw=1.5, label='基准特征 %s (area = %0.2f)' % (cls_name, roc_auc))
 
-    pos_data, pos_label = loadDataSet('../../Dataset/beta/samples.pos.new', 'pos', 4)
-    __neg_data, __neg_label = loadDataSet('../../Dataset/beta/samples.neg.new', 'neg', 4)
-    neg_data = np.random.permutation(__neg_data)
-    neg_label = __neg_label[:pos_data.shape[0]]
-    dataset = np.append(pos_data, neg_data[:pos_data.shape[0], :], axis=0)
-    dataset = autoNorm(dataset, 0)
-    dataset = autoNorm(dataset, 2)
-    target = np.append(pos_label, neg_label)
+    # Case: better3
+    #       base + trending_index
+    features = dataset.filter(items=feature_cases['better3'])
     train_dataset, test_dataset, train_target, test_target = \
-        ms.train_test_split(dataset, target, test_size=0.1, random_state=rand)
+        ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
-        debug('Modeling %s' % cls_name)
+        Spider.utils.debug('Modeling %s' % cls_name)
         prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
@@ -205,21 +195,23 @@ if __name__ == '__main__':
         proj_dir = '..'
     else:
         proj_dir = sys.argv[1]
-
+    res_dir = proj_dir + '/result'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
-    neg_data = np.random.permutation(__neg_data)
-    #neg_label = __neg_label[:pos_data.shape[0]]
-    neg_label = __neg_label
-    dataset = np.append(pos_data, neg_data, axis=0)
-    dataset = autoNorm(dataset, 0)
-    dataset = autoNorm(dataset, 2)
-    target = np.append(pos_label, neg_label)
-
-    #cvModels(dataset, target)
-    #evalRocCurve(dataset, target)
-    cacModelPrecision(dataset, target)
-    #plotModelRoc(dataset, target)
-    #plotModelRoc2(dataset, target)
+    dataset = preprocessing(dataset)
+    feature_cases = {
+        'base': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity'],
+        'better1': [],
+        'better2': [],
+        'better3': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'trending_index'],
+        'all': [],
+    }
+    features = dataset.filter(items=feature_cases['base'])
+    target = dataset['pos']
+    cvModels(features, target, res_dir)
+    evalRocCurve(features, target)
+    cacModelPrecision(features, target)
+    plotModelRoc(features, target)
+    plotModelRoc2(dataset, feature_cases)
 
 
 
