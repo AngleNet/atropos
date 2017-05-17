@@ -217,11 +217,12 @@ class TrainningSample:
         self.retweet_rate = 0
         self.interact_rate = 0
         self.trending_index = 0
+        self.pos = 0
 
     def __str__(self):
         return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
-               '%(interact_rate)s' % self.__dict__
+               '%(interact_rate)s,%(pos)s' % self.__dict__
 
     @staticmethod
     def lineSpliter(line):
@@ -240,6 +241,7 @@ class TrainningSample:
         samp.retweet_rate = float(cols[7])
         samp.interact_rate = float(cols[8])
         samp.trending_index = float(cols[9])
+        samp.pos = int(cols[10])
         return samp
 
 
@@ -644,4 +646,6 @@ def dictExtend(d1, d2):
     for v in d2.keys():
         if v not in d1:
             d1[v] = d2[v]
+if __name__ == '__main__':
+    x = 1
 
