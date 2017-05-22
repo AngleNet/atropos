@@ -224,9 +224,9 @@ if __name__ == '__main__':
     target = dataset['pos']
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
-    #cacModelPrecision(features, target, 'lr')
+    cacModelPrecision(features, target, 'lr')
     #plotModelRoc(features, target)
-    plotModelRoc2(dataset, feature_cases)
+    #plotModelRoc2(dataset, feature_cases)
 
 
 
