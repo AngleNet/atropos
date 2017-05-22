@@ -13,7 +13,7 @@ def spideUser(user):
         return user
     if user.link.strip() == '':
         user.link = Spider.utils.uidToLink(user.id)
-    if user.link == '' or user.id is None:
+    if user.link == '' or user.link == 'http://weibo.com/'or user.id is None:
         return None
     ret = Spider.utils.reliableGet(user.link)
     return parseHtml(ret.text, user)
@@ -109,7 +109,7 @@ def spideUsers(proj_dir, ousers):
                         break
                     tries += 1
                 except Exception:
-                    failed.append(user)
+                    failed.append(ouser)
             if user and (user.id is None or user.page_id is None):
                 failed.append(ouser)
     with codecs.open(res_dir + '/user_links.failed', 'w', 'utf-8') as fd:
