@@ -21,7 +21,7 @@ if __name__ == '__main__':
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
     samps = loadSamples(data_dir + '/tweets.sample')
-    ousers = Spider.utils.loadUsers(data_dir + 'user_links.new')
+    ousers = Spider.utils.loadUsers(data_dir + '/user_links.new')
     users = dict()
     for samp in samps.values():
         if samp.uid in users and users[samp.uid].page_id != '':
