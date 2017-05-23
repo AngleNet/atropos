@@ -44,15 +44,16 @@ if __name__ == '__main__':
     plt_ranks = dict()
     colors = randomColors(topk+1)
     fig = plt.figure()
-    plt_ranks[0] = plt.bar(np.arange(0, len(dates)*0.4, 0.4), topk_topics[0], width=0.2, color=colors[0], label='Top-1')
+    x_axis = np.arange(0, round(len(dates)*0.4,2), 0.4)
+    plt_ranks[0] = plt.bar(x_axis, topk_topics[0], width=0.2, color=colors[0], label='Top-1')
     cum = [0 for i in range(0, len(dates))]
     for _rank in range(1, topk):
         cum = [cum[i] + topk_topics[_rank][i]for i in range(0, len(dates))]
-        plt_ranks[_rank] = plt.bar(np.arange(0, len(dates)*0.4, 0.4), topk_topics[_rank], width=0.2,
+        plt_ranks[_rank] = plt.bar(x_axis, topk_topics[_rank], width=0.2,
                                    color=colors[_rank], bottom=cum, label='Top-'+str(_rank+1))
     plt.legend(loc=1, fontsize='xx-small')
-    plt.ylabel('阅读量')
-    plt.xlabel('时间')
+    plt.ylabel('阅读量', verticalalignment='top')
+    plt.xlabel('时间', horizontalalignment='right')
     plt.title('热点话题阅读量')
     plt.xlim([0, 0.4*len(dates)])
     plt.xticks(np.arange(0.1, len(dates)*0.4, 0.4), [re.sub('-', '/', d)[6:] for d in dates])
