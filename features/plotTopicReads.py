@@ -1,4 +1,5 @@
-import glob,os.path, faker, datetime
+import glob,os.path, faker, datetime, re
+import numpy as np
 import sys
 sys.path.append('../')
 import Spider.utils
@@ -40,24 +41,19 @@ if __name__ == '__main__':
         for _date in dates:
             topk_topics[i].append(topics[_date][i])
 
-    x_dates = mdates.drange(
-        datetime.datetime(int(dates[0].split('-')[0]), int(dates[0].split('-')[1]),
-                          int(dates[0].split('-')[2])),
-        datetime.datetime(int(dates[-1].split('-')[0]), int(dates[-1].split('-')[1]),
-                          int(dates[-1].split('-')[2])+1),
-        datetime.timedelta(days=1)
-    )
     plt_ranks = dict()
     colors = randomColors(topk+1)
     fig = plt.figure()
-    plt_ranks[0] = plt.bar(x_dates, topk_topics[0], width=0.3, color=colors[0], label='Top-1')
+    plt_ranks[0] = plt.bar(np.arange(0, len(dates)*0.4, 0.4), topk_topics[0], width=0.2, color=colors[0], label='Top-1')
+    cum = [0 for i in range(0, len(dates))]
     for _rank in range(1, topk):
-        plt_ranks[_rank] = plt.bar(x_dates, topk_topics[_rank], width=0.3,
-                                   color=colors[_rank], bottom=topk_topics[_rank-1], label='Top-'+str(_rank+1))
-    #plt.plot(x_dates, total_reads, color=colors[-1])
-    #plt.legend(tuple(plt_ranks), tuple(['Top-'+str(i) for i in range(1, topk+1)]))
-    plt.legend()
-
-    plt.gca().xaxis_date()
-    fig.autofmt_xdate()
+        cum = [cum[i] + topk_topics[_rank][i]for i in range(0, len(dates))]
+        plt_ranks[_rank] = plt.bar(np.arange(0, len(dates)*0.4, 0.4), topk_topics[_rank], width=0.2,
+                                   color=colors[_rank], bottom=cum, label='Top-'+str(_rank+1))
+    plt.legend(loc=1, fontsize='xx-small')
+    plt.ylabel('阅读量')
+    plt.xlabel('时间')
+    plt.title('热点话题阅读量')
+    plt.xlim([0, 0.4*len(dates)])
+    plt.xticks(np.arange(0.1, len(dates)*0.4, 0.4), [re.sub('-', '/', d)[6:] for d in dates])
     plt.show()
