@@ -623,7 +623,7 @@ def topicLineSpliter(line):
         return None
     topic = Topic()
     topic.idx = cols[0]
-    topic.reads = cols[1]
+    topic.reads = int(cols[1])
     for _ in cols[2:]:
         topic.name += _ + ','
     topic.name = topic.name[:-1]
