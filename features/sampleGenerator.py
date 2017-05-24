@@ -47,9 +47,9 @@ def getUserActivity(data_dir):
                     else:
                         tweets_statis[_uid]['nr_otweets'][_ouid] += 1
         times = sorted(times)
-        tweets_statis[_uid]['nr_days'] = int(times[-1]) - int(times[0]) + 1
-        if tweets_statis[_uid]['nr_days'] < 1:
-            Spider.utils.debug('Met a wrong time window for {uid}'.format(uid=_uid))
+        #tweets_statis[_uid]['nr_days'] = int(times[-1]) - int(times[0]) + 1
+        # if tweets_statis[_uid]['nr_days'] < 1:
+        #     Spider.utils.debug('Met a wrong time window for {uid}'.format(uid=_uid))
     return tweets_statis
 
 if __name__ == '__main__':
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                 Spider.utils.debug('Missing user posting habit for last hop {ouid}'.format(
                     ouid=samp.ouid
                 ))
-            else:
+            elif user_activity[samp.uid]['nr_retweets'] != 0:
                 _samp.interact_rate = user_activity[samp.uid]['nr_otweets'][samp.ouid]/float(
                     user_activity[samp.uid]['nr_retweets']
                 )
