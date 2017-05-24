@@ -102,9 +102,10 @@ if __name__ == '__main__':
                 uid=samp.uid
             ))
         else:
-            _samp.retweet_rate = user_activity[samp.uid]['nr_retweets']/float(
-                user_activity[samp.uid]['nr_tweets']
-            )
+            if user_activity[samp.uid]['nr_tweets'] != 0:
+                 _samp.retweet_rate = user_activity[samp.uid]['nr_retweets']/float(
+                    user_activity[samp.uid]['nr_tweets']
+                )
             if samp.ouid not in user_activity[samp.uid]['nr_otweets']:
                 Spider.utils.debug('Missing user posting habit for last hop {ouid}'.format(
                     ouid=samp.ouid
