@@ -21,7 +21,7 @@ def loadTrindexSample(fn):
     return samps
 
 def getUserActivity(data_dir):
-    uids = [os.path.basename(fn).split('.')[0] for fn in glob.glob('/{dir}/*.tweet'.format(dir=data_dir))]
+    uids = [os.path.basename(fn).split('.')[0] for fn in glob.glob('{dir}/*.tweet'.format(dir=data_dir))]
     tweets_statis = dict()
     for _uid in uids:
         tweets_statis[_uid] = {
