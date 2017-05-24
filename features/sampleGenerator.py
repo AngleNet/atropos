@@ -1,4 +1,4 @@
-import codecs, sys
+import codecs, sys, os.path, glob
 sys.path.append('..')
 import Spider.utils
 
@@ -20,6 +20,38 @@ def loadTrindexSample(fn):
                 samps[samp.id] = samp
     return samps
 
+def getUserActivity(data_dir):
+    uids = [os.path.basename(fn).split('.')[0] for fn in glob.glob('{dir}/*.tweet'.format(dir=data_dir))]
+    tweets_statis = dict()
+    for _uid in uids:
+        tweets_statis[_uid] = {
+            'nr_otweets': dict(),
+            'nr_tweets': 0,
+            'nr_retweets': 0,
+            'nr_days': 0
+        }
+        tweets = Spider.utils.loadTweets('{dir}/{uid}.tweet'.format(dir=data_dir, uid=_uid), use_filter=False);
+        otweets = Spider.utils.loadTweets('{dir}/{uid}.origin_tweet'.format(
+            dir=data_dir, uid=_uid
+        ))
+        times = list()
+        for _tweet in tweets.values():
+            times.append(_tweet.time[:8])
+            tweets_statis[_uid]['nr_tweets'] += 1
+            if _tweet.omid != '0':
+                tweets_statis[_uid]['nr_retweets'] += 1
+                if _tweet.omid in otweets:
+                    _ouid = otweets[_tweet.omid].uid
+                    if _ouid not in tweets_statis[_uid]['nr_otweets']:
+                        tweets_statis[_uid]['nr_otweets'][_ouid] = 1
+                    else:
+                        tweets_statis[_uid]['nr_otweets'][_ouid] += 1
+        times = sorted(times)
+        tweets_statis[_uid]['nr_days'] = int(times[-1]) - int(times[0]) + 1
+        if tweets_statis[_uid]['nr_days'] < 1:
+            Spider.utils.debug('Met a wrong time window for {uid}'.format(uid=_uid))
+    return tweets_statis
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         proj_dir = '..'
@@ -33,9 +65,7 @@ if __name__ == '__main__':
     users = Spider.utils.loadUsers(data_dir + '/users')
     samps = dict()
 
-    ntweets = dict()
-    nretweets = dict()
-    ninteracts = dict()
+    user_activity = getUserActivity(data_dir + '/user_tweets')
 
 
     for samp in weibo_samps.values():
@@ -66,6 +96,23 @@ if __name__ == '__main__':
             ))
         if int(samp.truly_retweeted) == 1:
             _samp.pos = 1
+
+        if samp.uid not in user_activity:
+            Spider.utils.debug('Missing user posting habit for {uid}'.format(
+                uid=samp.uid
+            ))
+        else:
+            _samp.retweet_rate = user_activity[samp.uid]['nr_retweets']/float(
+                user_activity[samp.uid]['nr_tweets']
+            )
+            if samp.ouid not in user_activity[samp.uid]['nr_otweets']:
+                Spider.utils.debug('Missing user posting habit for last hop {ouid}'.format(
+                    ouid=samp.ouid
+                ))
+            else:
+                _samp.interact_rate = user_activity[samp.uid]['nr_otweets'][samp.ouid]/float(
+                    user_activity[samp.uid]['nr_retweets']
+                )
 
     with codecs.open('{dir}/samples.train'.format(dir=res_dir), 'w', 'utf-8') as fd:
         for samp in samps.values():

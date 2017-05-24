@@ -579,14 +579,14 @@ def loadOriginalUserLinks(fname):
                 links[link.ouid] = link
     return links
 
-def loadTweets(fname):
+def loadTweets(fname, use_filter=True):
     def timeFilter(tweet):
         return int(tweet.time) >= Config.SAMPLE_WINDOW_START and \
                 int(tweet.time) <= Config.SAMPLE_WINDOW_END
     if not os.path.exists(fname):
         debug('{fname} does not exists.'.format(fname=fname))
         return None
-    if os.path.basename(fname).split('.')[-1] == 'origin_tweet':
+    if os.path.basename(fname).split('.')[-1] == 'origin_tweet' or not use_filter:
         filter = lambda tweet: True
     else:
         filter = timeFilter

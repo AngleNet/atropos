@@ -14,15 +14,13 @@ def loadData(fn):
     negs = list()
     with codecs.open(fn, 'r', 'utf-8') as fd:
         for line in fd.readlines():
-            samp = Spider.utils.sampleLineSpliter(line)
+            samp = Spider.utils.TrainningSample.lineSpliter(line)
             if not samp:
                 continue
-            if samp.truly_retweeted == '1':
-                pos.append(float(samp.trindex))
-            elif samp.truly_retweeted == '0':
-                negs.append(float(samp.trindex))
+            if samp.pos == 1:
+                pos.append(samp.trending_index)
             else:
-                Spider.utils.debug('Missing sample type')
+                negs.append(samp.trending_index)
     return (pos, negs)
 
 def caculateProb(negs, pos):
