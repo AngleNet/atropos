@@ -18,9 +18,9 @@ def loadData(fn):
             if not samp:
                 continue
             if samp.pos == 1:
-                pos.append(samp.trending_index)
+                pos.append(samp.interact_rate)
             else:
-                negs.append(samp.trending_index)
+                negs.append(samp.interact_rate)
     return (pos, negs)
 
 def caculateProb(negs, pos):
@@ -205,7 +205,7 @@ def trindxStatus(pos, negs):
     os.abort()
 
 if __name__ == '__main__':
-    pos_data, negs_data  = loadData('../data/sample')
+    pos_data, negs_data  = loadData('../data/samples.train')
     #Trending Index histogram
     #trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
