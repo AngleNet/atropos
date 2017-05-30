@@ -18,9 +18,9 @@ def loadData(fn):
             if not samp:
                 continue
             if samp.pos == 1:
-                pos.append(samp.interact_rate)
+                pos.append(samp.trending_index)
             else:
-                negs.append(samp.interact_rate)
+                negs.append(samp.trending_index)
     return (pos, negs)
 
 def caculateProb(negs, pos):

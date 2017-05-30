@@ -167,8 +167,8 @@ def plotModelRoc2(dataset, feature_cases):
     features = dataset.filter(items=feature_cases['base'])
     rand = np.random.RandomState(0)
     classifiers = {
-        'LR': LogisticRegression(),
-        'SVM':  svm.SVC(kernel='linear', random_state=rand, probability=True),
+        # 'LR': LogisticRegression(),
+        # 'SVM':  svm.SVC(kernel='linear', random_state=rand, probability=True),
         'Bayes': naive_bayes.GaussianNB(),
     }
     train_dataset, test_dataset, train_target, test_target = \
@@ -193,11 +193,11 @@ def plotModelRoc2(dataset, feature_cases):
         plt.plot(fpr, tpr, lw=1.5, label='基准特征+流行度 %s (area = %0.2f)' % (cls_name, roc_auc))
 
     plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
-    plt.xlim([-0.05, 1.05])
-    plt.ylim([-0.05, 1.05])
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic example')
+    plt.title('ROC 曲线')
     plt.legend(loc="lower right")
     plt.show()
 
@@ -224,9 +224,9 @@ if __name__ == '__main__':
     target = dataset['pos']
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
-    cacModelPrecision(features, target, 'lr')
+    #cacModelPrecision(features, target, 'lr')
     #plotModelRoc(features, target)
-    #plotModelRoc2(dataset, feature_cases)
+    plotModelRoc2(dataset, feature_cases)
 
 
 
