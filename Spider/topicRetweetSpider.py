@@ -10,7 +10,9 @@ class TRWeiboSpider:
         self.idx = topic.idx
         self.name = topic.name
         self.domain = self.idx[:6]
+        self.nr_pages = 0
     def spide(self, nr_pages = 1):
+        self.nr_pages = nr_pages
         html  = self.spideFirstPage(1, 1)
         if html == '':
             return dict()
@@ -27,8 +29,9 @@ class TRWeiboSpider:
         Spider.utils.dictExtend(contents, self.parseWeibo(html))
         since_id = self.retrieveSinceid(html)
         cp = 3
-        for p in range(2, nr_pages+1):
-            html = self.spideFirstPage(cp, p, since_id)
+        nr_page = 2
+        while nr_page < self.nr_pages+1:
+            html = self.spideFirstPage(cp, nr_page, since_id)
             if html == '':
                 return contents
             Spider.utils.dictExtend(contents, self.parseWeibo(html))
@@ -36,7 +39,7 @@ class TRWeiboSpider:
             if since_id == -1:
                 break
             cp += 1
-            html = self.spideSecondPage(cp, p, since_id)
+            html = self.spideSecondPage(cp, nr_page, since_id)
             if  html == '':
                 return contents
             Spider.utils.dictExtend(contents, self.parseWeibo(html))
@@ -44,7 +47,7 @@ class TRWeiboSpider:
             if since_id == -1:
                 break
             cp += 1
-            html = self.spideThirdPage(cp, p, since_id)
+            html = self.spideThirdPage(cp, nr_page, since_id)
             if html == '':
                 return contents
             Spider.utils.dictExtend(contents, self.parseWeibo(html))
@@ -52,6 +55,7 @@ class TRWeiboSpider:
             if since_id == -1:
                 break
             cp += 1
+            nr_page += 1
         return contents
 
     def spideFirstPage(self, current_page, page, since_id = ''):
@@ -110,6 +114,7 @@ class TRWeiboSpider:
         if html == '':
             return tweets
         box = BeautifulSoup(html, 'lxml')
+        found = False
         for wrap_box in box.find_all('div', 'WB_cardwrap'):
             try:
                 if 'mid' not in wrap_box.attrs:#Bypass mysterious box
@@ -128,10 +133,16 @@ class TRWeiboSpider:
                     continue
                 #Spide expand box firstly.
                 msg =  self.parseTweetBox(tweet_box, mid, uid)
-                if msg and mid not in tweets:
+                if not found and msg and (int(msg.time) > Spider.utils.Config.SAMPLE_WINDOW_END or
+                    int(msg.time) < Spider.utils.Config.SAMPLE_WINDOW_START):
+                    continue
+                elif msg and mid not in tweets:
+                    found = True
                     tweets[mid] = msg
             except Exception:
                 traceback.print_exc()
+        if not found:
+            self.nr_pages += 1
         return tweets
     def parseTweetBox(self, box, mid, uid):
         if not box or not mid or box.find('div', 'WB_empty'):
@@ -260,10 +271,10 @@ if __name__ == '__main__':
         spider = TRWeiboSpider(topic)
         tweets = spider.spide(nr_pages=3)
         with codecs.open('{dir}/{idx}.origin_tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
-            for tweet in tweets.values():
+            for tweet in sorted(tweets.values(), key=lambda m: m.time):
                 fd.write(str(tweet) + '\n')
         with codecs.open('{dir}/{idx}.tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
-            for tweet in tweets.values():
+            for tweet in sorted(tweets.values(), key=lambda m: m.time):
                 retweets = spideRetweets(tweet, pages=3)
                 for retweet in retweets.values():
                     fd.write(str(retweet) + '\n')

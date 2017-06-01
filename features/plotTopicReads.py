@@ -22,7 +22,13 @@ def getTotalReads(fn):
 def randomColors(num):
     fake = faker.Factory.create()
     return [fake.hex_color() for i in range(0, num)]
-    pass
+
+def plotTotalReads(reads):
+    x = [i for i in range(0, len(reads))]
+    plt.figure()
+    plt.plot(x, reads)
+    plt.show()
+    os.abort('Exit')
 if __name__ == '__main__':
     data_dir = '../data'
     dates = sorted([os.path.basename(n).split('.')[0] for n in glob.glob(data_dir+'/*.topk_topic')])
@@ -33,6 +39,8 @@ if __name__ == '__main__':
         topics[_d] = [ r.reads for r in Spider.utils.loadTrendingTopics(fn).values()]
         topics[_d] = sorted(topics[_d], reverse=True)
         total_reads.append(getTotalReads(fn))
+
+    plotTotalReads(total_reads)
     topk = 10
     topk_topics = dict()
     for i in range(0, topk):
@@ -40,7 +48,6 @@ if __name__ == '__main__':
     for i in range(0, topk):
         for _date in dates:
             topk_topics[i].append(topics[_date][i])
-
     plt_ranks = dict()
     colors = randomColors(topk+1)
     fig = plt.figure()
