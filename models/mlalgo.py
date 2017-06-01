@@ -2,7 +2,7 @@
 """
 import numpy as np
 import codecs, sklearn
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 import sklearn.model_selection as ms
 from sklearn import svm
 from sklearn import naive_bayes
@@ -42,7 +42,15 @@ def loadDataSet(fn):
                     __dataset[__label].append(getattr(samp, __label))
             else:
                 Spider.utils.debug('Bypassing line: {line}'.format(line=line))
-    return pandas.DataFrame(__dataset)
+    _dataset = pandas.DataFrame(__dataset)
+    num_pos = len(_dataset[_dataset['pos']==1])
+    _dataset_pos = _dataset[_dataset['pos']==1]
+    _dataset.drop(_dataset['pos']==1,inplace=1,axis=0)
+    _dataset_neg = _dataset[:num_pos]
+    new_dataset = _dataset_pos.append(_dataset_neg)
+    return new_dataset
+    # print (new_dataset.shape,num_pos)
+    # print (_dataset.shape)
 
 def preprocessing(dataset):
     dataset = dataset.sample(n=dataset.shape[0])
@@ -111,13 +119,13 @@ def evalRocCurve(features, target):
 
 #Part I
 #Precision, Recall, F1 score
-def cacModelPrecision(features, target, model):
+def cacModelPrecision(features, target, model='lr'):
     rand = np.random.RandomState(0)
     if model == 'lr':
-        model = LogisticRegression()
+        model = LogisticRegression(class_weight='balanced')
         Spider.utils.debug('Running LR')
     elif model == 'svm':
-        model = svm.SVC(kernel='linear', random_state=rand)
+        model = svm.SVC(kernel='poly', random_state=rand, probability=True)
         Spider.utils.debug('Running SVM')
     elif model == 'bayes':
         model = naive_bayes.GaussianNB()
@@ -126,12 +134,23 @@ def cacModelPrecision(features, target, model):
         Spider.utils.debug('Bad model {model}'.format(model=model))
         return
     train_dataset, test_dataset, train_target, test_target= \
-        ms.train_test_split(features, target, test_size=0.1, random_state=rand)
+        ms.train_test_split(features, target, test_size=0.2, random_state=rand)
+    # Plot Precision-Recall
+    # prob = model.fit(train_dataset, train_target).predict_proba(test_dataset)
+    # precision, recall, _ = metrics.precision_recall_curve(np.array(test_target), prob[:, 1])
+    # plt.figure()
+    # plt.plot(recall, precision, color='navy')
+    # plt.show()
+
     target_pred = model.fit(train_dataset, train_target).predict(test_dataset)
-    precision, recall, f1_score, support = metrics.precision_recall_fscore_support(
-        test_target, target_pred, average='binary'
-    )
-    Spider.utils.debug('Precision: {prec}%, Recall: {recall}%, F1: {fscore}%'.format(
+    accu = metrics.accuracy_score(np.array(test_target), np.array(target_pred))
+
+    precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+    recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+    f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+    # Spider.utils.debug('Precision: {prec}%, Recall: {recall}%, F1: {fscore}%'.format(
+    Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
         prec=precision*100,
         recall=recall*100,
         fscore=f1_score*100,
@@ -167,9 +186,9 @@ def plotModelRoc2(dataset, feature_cases):
     features = dataset.filter(items=feature_cases['base'])
     rand = np.random.RandomState(0)
     classifiers = {
-        # 'LR': LogisticRegression(),
-        # 'SVM':  svm.SVC(kernel='linear', random_state=rand, probability=True),
-        'Bayes': naive_bayes.GaussianNB(),
+        # 'LR': LogisticRegression(class_weight='balanced'),
+        'SVM':  svm.SVC(kernel='sigmoid', random_state=rand, probability=True),
+        #'Bayes': naive_bayes.GaussianNB(),
     }
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
@@ -220,13 +239,13 @@ if __name__ == '__main__':
         'better3': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'trending_index'],
         'all': [],
     }
-    features = dataset.filter(items=feature_cases['base'])
+    features = dataset.filter(items=feature_cases['better3'])
     target = dataset['pos']
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
-    #cacModelPrecision(features, target, 'lr')
-    #plotModelRoc(features, target)
-    plotModelRoc2(dataset, feature_cases)
+    cacModelPrecision(features, target, 'lr')
+    # plotModelRoc(features, target)
+    # plotModelRoc2(dataset, feature_cases)
 
 
 
