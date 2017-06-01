@@ -237,15 +237,17 @@ def spideRetweets(tweet, pages=1):
         pages = total_pages
     Spider.utils.dictExtend(retweets, extractRetweets(
         Spider.utils.strip(ret_json['data']['html']), tweet))
-    for page in range(2, pages+1):
+    page = 2
+    while page < pages+1:
         link = link[:-1] + str(page)
         ret = Spider.utils.reliableGet(link)
         ret_json = json.loads(ret.text)
         if not ret_json.get('data') or \
-                        ret_json['data'].get('html') is None or ret_json['data'].get('page'):
+                        ret_json['data'].get('html') is None or ret_json['data'].get('page') is None:
             continue
-        Spider.utils.dictExtend(retweets, extractRetweets(
-            Spider.utils.strip(ret_json['data']['html']), tweet))
+        _tweets = extractRetweets(Spider.utils.strip(ret_json['data']['html']), tweet)
+        Spider.utils.dictExtend(retweets, _tweets)
+        page += 1
     return retweets
 
 if __name__ == '__main__':
@@ -269,12 +271,15 @@ if __name__ == '__main__':
             Spider.utils.debug('Bypass topic {idx}'.format(idx=topic.idx))
             continue
         spider = TRWeiboSpider(topic)
-        tweets = spider.spide(nr_pages=3)
+        tweets = spider.spide(nr_pages=4)
         with codecs.open('{dir}/{idx}.origin_tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in sorted(tweets.values(), key=lambda m: m.time):
                 fd.write(str(tweet) + '\n')
         with codecs.open('{dir}/{idx}.tweet'.format(dir=result_dir, idx=topic.idx), 'w', 'utf-8') as fd:
             for tweet in sorted(tweets.values(), key=lambda m: m.time):
+                if int(tweet.time) < Spider.utils.Config.SAMPLE_WINDOW_START or \
+                    int(tweet.time) > Spider.utils.Config.SAMPLE_WINDOW_END:
+                    continue
                 retweets = spideRetweets(tweet, pages=3)
                 for retweet in retweets.values():
                     fd.write(str(retweet) + '\n')
