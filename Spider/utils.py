@@ -206,7 +206,7 @@ class Sample:
         self.num_videos = weibo.num_videos
     def __str__(self):
         return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s,' \
-               '%(num_links)s,%(num_videos)s,%(trindex)s, %(num_topics)s, %(num_trending_topics)s' % self.__dict__
+               '%(num_links)s,%(num_videos)s,%(trindex)s,%(num_topics)s,%(num_trending_topics)s' % self.__dict__
 
 class TrainningSample:
     def __init__(self):
