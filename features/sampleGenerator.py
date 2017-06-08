@@ -82,11 +82,16 @@ if __name__ == '__main__':
         _samp.num_urls = int(samp.num_links)
         _samp.num_videos = int(samp.num_videos)
         _samp.content_len = len(samp.text)
+
         if samp.id in trdx_samps:
+            _samp.num_topics = int(trdx_samps[samp.id].num_topics)
+            _samp.num_trending_topics = int(trdx_samps[samp.id].num_trending_topics)
             _samp.trending_index = float(trdx_samps[samp.id].trindex)
         else:
             Spider.utils.debug('Trending index of sample {mid} not found'
                                ', setting to 0'.format(mid=samp.id))
+            _samp.num_topics = 0
+            _samp.num_trending_topics = 0
             _samp.trending_index = 0.0
         if _samp.id not in samps:
             samps[_samp.id] = _samp

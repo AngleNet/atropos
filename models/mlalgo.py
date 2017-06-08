@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 import sklearn.model_selection as ms
 from sklearn import svm
 from sklearn import naive_bayes
+from sklearn import tree
 import sklearn.metrics as metrics
 import matplotlib.pyplot as plt
 import matplotlib
@@ -187,14 +188,28 @@ def plotModelRoc2(dataset, feature_cases):
     rand = np.random.RandomState(0)
     classifiers = {
         # 'LR': LogisticRegression(class_weight='balanced'),
-        'SVM':  svm.SVC(kernel='sigmoid', random_state=rand, probability=True),
-        #'Bayes': naive_bayes.GaussianNB(),
+        #'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
+        # 'Bayes': naive_bayes.GaussianNB(),
+        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
     }
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
         Spider.utils.debug('Modeling %s' % cls_name)
-        prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
+        _model = cls.fit(train_dataset, train_target)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
+
+        prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, ':',  lw=1.5, label='基准特征 %s (area = %0.2f)' % (cls_name, roc_auc))
@@ -206,7 +221,19 @@ def plotModelRoc2(dataset, feature_cases):
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
         Spider.utils.debug('Modeling %s' % cls_name)
-        prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
+        _model = cls.fit(train_dataset, train_target)
+        prob = _model.predict_proba(test_dataset)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, lw=1.5, label='基准特征+流行度 %s (area = %0.2f)' % (cls_name, roc_auc))
@@ -243,9 +270,9 @@ if __name__ == '__main__':
     target = dataset['pos']
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
-    cacModelPrecision(features, target, 'lr')
+    # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
-    # plotModelRoc2(dataset, feature_cases)
+    plotModelRoc2(dataset, feature_cases)
 
 
 

@@ -255,7 +255,7 @@ if __name__ == '__main__':
     plt.ylabel(u"累积概率")
     plt.xlabel(u'微博热度')
     plt.ylim((0, 1.0))
-    plt.xlim(0, max(x))
+    plt.xlim(0, 0.045)
     plt.legend()
     plt.show()
 
