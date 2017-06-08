@@ -205,14 +205,16 @@ def cacParallel(samps, topics, kws):
                 traceback.print_exc()
 
 def containsTopics(weibo, topics):
+    _content = weibo.text
     names= list()
-    if len(weibo.text) > 1:
-        _s = weibo.text.find('#')
+    if len(_content) > 1:
+        _s = _content.find('#')
         while _s != -1:
-            _t = weibo.text[_s+1:].find('#')
+            _t = _content[_s+1:].find('#')
             if _t != -1:
-                names.append(weibo.text[_s:_s+1+_t])
-                _s = weibo.text[_s+_t+2:].find('#')
+                names.append(_content[_s:_s+2+_t])
+                _content = _content[_s+2+_t:]
+                _s = _content.find('#')
             else:
                 break
     ntrtopics = 0
