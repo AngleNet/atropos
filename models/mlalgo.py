@@ -264,7 +264,7 @@ if __name__ == '__main__':
         'base': _base_features,
         'better1': [],
         'better2': [],
-        'better3': _base_features + ['num_trending_topics'],
+        'better3': _base_features + ['trending_index'],
         'all': [],
     }
     features = dataset.filter(items=feature_cases['better3'])
