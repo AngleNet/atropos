@@ -131,8 +131,8 @@ def cacIndex(samp, topics, kws, stop_words):
         if samp.text.find(topic.name) != -1:
             tridx += topic.trindex
             continue
-        w = weighter(samp, samp_kws, topic, kws)
-        tridx += w
+        # w = weighter(samp, samp_kws, topic, kws)
+        # tridx += w
         # if w > 0:
         #     print('weighter: \t' + str(w), end='\n\t')
         #     print('kws:\t' + str(samp_kws), end='\n\t')

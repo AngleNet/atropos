@@ -55,7 +55,7 @@ def loadDataSet(fn):
 
 def preprocessing(dataset):
     dataset = dataset.sample(n=dataset.shape[0])
-    _labels = ['num_followers', 'num_urls', 'content_len']
+    _labels = ['num_followers', 'num_urls', 'content_len', 'num_topics', 'num_trending_topics']
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     for _label in _labels:
         dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
@@ -187,10 +187,10 @@ def plotModelRoc2(dataset, feature_cases):
     features = dataset.filter(items=feature_cases['base'])
     rand = np.random.RandomState(0)
     classifiers = {
-        # 'LR': LogisticRegression(class_weight='balanced'),
+        'LR': LogisticRegression(class_weight='balanced'),
         #'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
         # 'Bayes': naive_bayes.GaussianNB(),
-        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
+        # 'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
     }
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
@@ -259,11 +259,12 @@ if __name__ == '__main__':
     res_dir = proj_dir + '/result'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
+    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'num_topics']
     feature_cases = {
-        'base': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity'],
+        'base': _base_features,
         'better1': [],
         'better2': [],
-        'better3': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'trending_index'],
+        'better3': _base_features + ['num_trending_topics'],
         'all': [],
     }
     features = dataset.filter(items=feature_cases['better3'])

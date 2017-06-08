@@ -248,7 +248,7 @@ class TrainningSample:
         samp.trending_index = float(cols[9])
         samp.num_topics = int(cols[10])
         samp.num_trending_topics = int(cols[11])
-        samp.pos = int(cols[10])
+        samp.pos = int(cols[12])
         return samp
 
 
