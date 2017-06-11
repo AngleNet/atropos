@@ -247,6 +247,52 @@ def plotModelRoc2(dataset, feature_cases):
     plt.legend(loc="lower right")
     plt.show()
 
+def plotSingleModelRoc(dataset, feature_cases, model_name):
+    groups = dict(base='基准特征', better1='基准特征+话题热度',
+                  better2='基准特征+包含话题个数', better3='基准特征+话题热度+包含话题个数')
+    rand = np.random.RandomState(0)
+    classifiers = {
+        'LR': LogisticRegression(class_weight='balanced'),
+        'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
+        'Bayes': naive_bayes.GaussianNB(),
+         'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
+    }
+    if model_name not in classifiers:
+        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
+            name=model_name, models=classifiers.keys()
+        ))
+        return
+    model = classifiers[model_name]
+    for case in feature_cases:
+        train_dataset, test_dataset, train_target, test_target = \
+            ms.train_test_split(dataset.filter(items=feature_cases[case]), dataset['pos'], test_size=0.1, random_state=rand)
+        Spider.utils.debug('Modeling %s' % model_name)
+        _model = model.fit(train_dataset, train_target)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
+
+        prob = _model.predict_proba(test_dataset)
+        fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
+        roc_auc = metrics.auc(fpr, tpr)
+        plt.plot(fpr, tpr, ':', lw=1.5, label='%s %s (area = %0.2f)' % (groups[case], model_name, roc_auc))
+
+    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC 曲线')
+    plt.legend(loc="lower right")
+    plt.show()
 #PartIII
 def superParameterK(dataset, target):
     pass
@@ -259,13 +305,12 @@ if __name__ == '__main__':
     res_dir = proj_dir + '/result'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
-    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'num_topics']
+    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'has_trending_topics']
     feature_cases = {
         'base': _base_features,
-        'better1': [],
-        'better2': [],
-        'better3': _base_features + ['trending_index'],
-        'all': [],
+        'better1': _base_features + ['trending_index'],
+        'better2': _base_features + ['num_topics'],
+        'better3': _base_features + ['trending_index', 'num_topics'],
     }
     features = dataset.filter(items=feature_cases['better3'])
     target = dataset['pos']
@@ -273,7 +318,8 @@ if __name__ == '__main__':
     #evalRocCurve(features, target)
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
-    plotModelRoc2(dataset, feature_cases)
+    # plotModelRoc2(dataset, feature_cases)
+    plotSingleModelRoc(dataset, feature_cases)
 
 
 

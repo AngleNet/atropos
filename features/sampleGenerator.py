@@ -93,6 +93,11 @@ if __name__ == '__main__':
             _samp.num_topics = 0
             _samp.num_trending_topics = 0
             _samp.trending_index = 0.0
+        if _samp.num_trending_topics == 0:
+            _samp.has_trending_topics = 0
+        else:
+            _samp.has_trending_topics = 1
+
         if _samp.id not in samps:
             samps[_samp.id] = _samp
         else:

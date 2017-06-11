@@ -236,6 +236,10 @@ def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
         samp.trindex = index
         samp.num_topics = ntopics
         samp.num_trending_topics = ntrtopics
+        if samp.num_trending_topics == 0:
+            samp.has_topics = 0
+        else:
+            samp.has_topics = 1
         fd.write(str(samp) + '\n')
         fd.flush()
         #print('Index: ' + str(index) + '}')

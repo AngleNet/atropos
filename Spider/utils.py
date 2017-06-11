@@ -222,12 +222,14 @@ class TrainningSample:
         self.trending_index = 0
         self.num_topics = 0
         self.num_trending_topics = 0
+        self.has_trending_topics = 0
         self.pos = 0
 
     def __str__(self):
         return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
-               '%(interact_rate)s,%(trending_index)s,%(num_topics)s,%(num_trending_topics)s,%(pos)s' % self.__dict__
+               '%(interact_rate)s,%(trending_index)s,%(num_topics)s,' \
+               '%(num_trending_topics)s,%(has_trending_topics)s,%(pos)s' % self.__dict__
 
     @staticmethod
     def lineSpliter(line):
@@ -248,7 +250,8 @@ class TrainningSample:
         samp.trending_index = float(cols[9])
         samp.num_topics = int(cols[10])
         samp.num_trending_topics = int(cols[11])
-        samp.pos = int(cols[12])
+        samp.has_trending_topics = int(cols[12])
+        samp.pos = int(cols[13])
         return samp
 
 
