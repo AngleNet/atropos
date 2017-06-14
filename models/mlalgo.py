@@ -55,10 +55,13 @@ def loadDataSet(fn):
 
 def preprocessing(dataset):
     dataset = dataset.sample(n=dataset.shape[0])
-    _labels = ['num_followers', 'num_urls', 'content_len', 'num_topics', 'num_trending_topics']
+    _labels = ['num_followers', 'num_urls', 'content_len']
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     for _label in _labels:
         dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
+    dataset['has_trending_topics']  /= 10
+    dataset['num_trending_topics'] /= 10
+    dataset['trending_index'] *= 100
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -248,8 +251,8 @@ def plotModelRoc2(dataset, feature_cases):
     plt.show()
 
 def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
-    groups = dict(base='基准特征', better1='基准特征+话题热度',
-                  better2='基准特征+包含话题个数', better3='基准特征+话题热度+包含话题个数')
+    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
+                  better2='基准特征+话题热度')
     rand = np.random.RandomState(0)
     classifiers = {
         'LR': LogisticRegression(class_weight='balanced'),
@@ -295,8 +298,8 @@ def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
     plt.show()
 #PartIII
 def superParameterK(proj_dir, feature_cases, model_name, feature_group):
-    groups = dict(base='基准特征', better1='基准特征+话题热度',
-                  better2='基准特征+包含话题个数', better3='基准特征+话题热度+包含话题个数')
+    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
+             better2 = '基准特征+话题热度')
     rand = np.random.RandomState(0)
     classifiers = {
         'LR': LogisticRegression(class_weight='balanced'),
@@ -354,16 +357,15 @@ if __name__ == '__main__':
     _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'has_trending_topics']
     feature_cases = {
         'base': _base_features,
-        'better1': _base_features + ['trending_index'],
-        'better2': _base_features + ['num_topics'],
-        'better3': _base_features + ['trending_index', 'num_topics'],
+        'better1': _base_features + ['num_trending_topics'],
+        'better2': _base_features + ['trending_index'],
     }
-    features = dataset.filter(items=feature_cases['better3'])
     target = dataset['pos']
+    features = dataset.filter(items=feature_cases['better2'])
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    plotSingleModelRoc(dataset, feature_cases, 'C4.5', ['base', 'better1'])
-    superParameterK(proj_dir, feature_cases, 'C4.5', 'base')
+    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2'])
+    # superParameterK(proj_dir, feature_cases, 'C4.5', 'base')
