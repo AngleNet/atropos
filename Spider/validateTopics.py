@@ -28,7 +28,7 @@ if __name__ == '__main__':
         with codecs.open(topic_fn, 'r', 'utf-8') as fd:
             for line in fd.readlines():
                 line = line.strip()
-                if line == '' or len(line.spilit(',')) == 1:
+                if line == '' or len(line.split(',')) == 1:
                     continue
                 if checkTopic(line.split(',')[0]):
                     continue
