@@ -24,7 +24,7 @@ if __name__ == '__main__':
     topic_fs = glob.glob('{dir}/*.topk_topic'.format(dir=data_dir))
     for topic_fn in topic_fs:
         failed_fd = codecs.open('{res}/{date}.failed'.format(res=res_dir,
-                                                             date=os.path.basename(topic_fn)[:10]))
+                                                             date=os.path.basename(topic_fn)[:10]), 'w', 'utf-8')
         with codecs.open(topic_fn, 'r', 'utf-8') as fd:
             for line in fd.readlines():
                 line = line.strip()
