@@ -52,7 +52,7 @@ if __name__ == '__main__':
                 break
             if 'topic' in topics[_idx] and 'kws' in topics[_idx]:
                 _tfd.write(str(topics[_idx]['topic']) + '\n')
-                _kfd.write(str(topics[_idx]['kws']) + '\n')
+                _kfd.write(str(_idx) +','+ str(topics[_idx]['kws']) + '\n')
                 __num += 1
         _tfd.close()
         _kfd.close()
