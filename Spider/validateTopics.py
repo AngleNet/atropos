@@ -34,4 +34,3 @@ if __name__ == '__main__':
                     continue
                 failed_fd.write(line)
         failed_fd.close()
-

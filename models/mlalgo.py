@@ -1,7 +1,7 @@
 """
 """
 import numpy as np
-import codecs, sklearn
+import codecs, sklearn,os
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 import sklearn.model_selection as ms
 from sklearn import svm
@@ -61,7 +61,7 @@ def preprocessing(dataset):
         dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
     dataset['has_trending_topics']  /= 10
     dataset['num_trending_topics'] /= 10
-    dataset['trending_index'] *= 100
+    dataset['trending_index'] *= 25
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -315,12 +315,13 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
     model = classifiers[model_name]
     data_dir = proj_dir  + '/data'
     dataset_fs = glob.glob('{dir}/samples.train.*'.format(dir=data_dir))
-    for _fname in dataset_fs:
+    for _fname in sorted(dataset_fs, key=lambda x: int(x.split('.')[-1])):
+        _num = os.path.basename(_fname).split('.')[-1]
         dataset = loadDataSet(_fname)
         train_dataset, test_dataset, train_target, test_target = \
             ms.train_test_split(dataset.filter(items=feature_cases[feature_group]), dataset['pos'], test_size=0.1,
                                 random_state=rand)
-        Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[feature_group]))
+        Spider.utils.debug('Modeling %s with %s (k=%s)' % (model_name, groups[feature_group], _num))
         _model = model.fit(train_dataset, train_target)
         target_pred = _model.predict(test_dataset)
 
@@ -335,7 +336,8 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
         prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, lw=1.5, label='%s %s (area = %0.2f)' % (groups[feature_group], model_name, roc_auc))
+        plt.plot(fpr, tpr, lw=1.5, label='(k=%s) %s %s (area = %0.2f)' %
+                                         (_num, groups[feature_group], model_name, roc_auc))
     plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
@@ -344,6 +346,7 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
     plt.title('ROC 曲线')
     plt.legend(loc="lower right")
     plt.show()
+    os.abort()
 
 
 if __name__ == '__main__':
@@ -351,15 +354,18 @@ if __name__ == '__main__':
         proj_dir = '..'
     else:
         proj_dir = sys.argv[1]
-    res_dir = proj_dir + '/result'
-    dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
-    dataset = preprocessing(dataset)
-    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'has_trending_topics']
+    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos',
+                      'content_len', 'similarity', 'has_trending_topics']
     feature_cases = {
         'base': _base_features,
         'better1': _base_features + ['num_trending_topics'],
         'better2': _base_features + ['trending_index'],
     }
+    superParameterK(proj_dir, feature_cases, 'Bayes', 'base')
+    res_dir = proj_dir + '/result'
+    dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
+    dataset = preprocessing(dataset)
+
     target = dataset['pos']
     features = dataset.filter(items=feature_cases['better2'])
     #cvModels(features, target, res_dir)
@@ -367,5 +373,4 @@ if __name__ == '__main__':
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2'])
-    # superParameterK(proj_dir, feature_cases, 'C4.5', 'base')
+    # plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2'])
