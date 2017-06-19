@@ -16,7 +16,7 @@ if __name__ == '__main__':
     with codecs.open(fname, 'r', 'utf-8') as fd:
         for line in fd.readlines():
             topic = Spider.utils.topicLineSpliter(line)
-            if topic.idx not in topics:
+            if topic and topic.idx not in topics:
                 topics[topic.idx] = dict()
                 topics[topic.idx]['topic'] = topic
     with codecs.open('{dir}/topics.kws', 'r', 'utf-8') as fd:
