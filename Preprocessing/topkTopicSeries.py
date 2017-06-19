@@ -42,10 +42,10 @@ if __name__ == '__main__':
     for _num in range(START, END+1, STEP):
         _tfd = codecs.open('{dir}/{date}.topk_topic.{num}'.format(
             dir=res_dir, date=_date, num=_num
-        ))
+        ), 'w', 'utf-8')
         _kfd = codecs.open('{dir}/topics.kws.{num}'.format(
             dir=res_dir, num=_num
-        ))
+        ), 'w', 'utf-8')
         __num = 0
         for _idx in sorted_keys:
             if __num >= _num:
