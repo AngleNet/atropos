@@ -50,9 +50,10 @@ if __name__ == '__main__':
         for _idx in sorted_keys:
             if __num >= _num:
                 break
-            _tfd.write(str(topics[_idx]['topic']) + '\n')
-            _kfd.write(str(topics[_idx]['kws']) + '\n')
-            __num += 1
+            if 'topic' in topics[_idx] and 'kws' in topics[_idx]:
+                _tfd.write(str(topics[_idx]['topic']) + '\n')
+                _kfd.write(str(topics[_idx]['kws']) + '\n')
+                __num += 1
         _tfd.close()
         _kfd.close()
 
