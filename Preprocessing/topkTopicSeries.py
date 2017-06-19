@@ -19,7 +19,7 @@ if __name__ == '__main__':
             if topic and topic.idx not in topics:
                 topics[topic.idx] = dict()
                 topics[topic.idx]['topic'] = topic
-    with codecs.open('{dir}/topics.kws', 'r', 'utf-8') as fd:
+    with codecs.open('{dir}/topics.kws'.format(dir=data_dir), 'r', 'utf-8') as fd:
         for line in fd.readlines():
             line = line.strip()
             if line == '':
