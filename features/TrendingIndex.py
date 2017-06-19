@@ -14,25 +14,11 @@ class TopicsPerDay:
         self.topics = list()
         self.reads = 0
     def add(self, line):
-        line = line.strip()
-        if line == '':
-            return
-        cols = line.split(',')
-        if len(cols) == 1:
-            self.reads = int(line.split(':')[1])
-            return
-        tid = cols[0].strip()
-        rds = cols[1].strip()
-        name = ''
-        for k in cols[2:]:
-            name += k + ','
-        name = name[:-1]
-        topic = Spider.utils.Topic()
-        topic.idx = tid.strip()
-        topic.reads = rds.strip()
-        topic.name = name.strip()
-        self.topics.append(topic)
-
+        topic = Spider.utils.topicLineSpliter(line)
+        if 'Total_Reads' in line:
+            self.reads = int(line.split(':')[-1])
+        if topic:
+            self.topics.append(topic)
 
 def loadKeywords(fn):
     kws = dict()
@@ -87,9 +73,9 @@ def loadStopWords(resource_dir):
     stopw.append('\n')
     return stopw
 def cacTrindex(topics):
-    for topics in topics.values():
-        for topic in topics.topics:
-            topic.trindex = int(topic.reads) / topics.reads
+    for _topics in topics.values():
+        for topic in _topics.topics:
+            topic.trindex = int(topic.reads) / _topics.reads
 
 def loadSamples(proj_dir):
     fn = proj_dir + '/data/tweets.sample'

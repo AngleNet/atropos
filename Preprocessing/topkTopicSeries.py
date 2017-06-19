@@ -13,9 +13,12 @@ if __name__ == '__main__':
     fname = fname[0]
     _date = os.path.basename(fname).split('.')[0]
     topics  = dict()
+    total_reads = 0
     with codecs.open(fname, 'r', 'utf-8') as fd:
         for line in fd.readlines():
             topic = Spider.utils.topicLineSpliter(line)
+            if 'Total_Reads' in line:
+                total_reads = int(line.split(':')[-1])
             if topic and topic.idx not in topics:
                 topics[topic.idx] = dict()
                 topics[topic.idx]['topic'] = topic
@@ -54,6 +57,7 @@ if __name__ == '__main__':
                 _tfd.write(str(topics[_idx]['topic']) + '\n')
                 _kfd.write(str(_idx) +','+ str(topics[_idx]['kws']) + '\n')
                 __num += 1
+        _tfd.write('Total_Reads: ' + str(total_reads) + '\n')
         _tfd.close()
         _kfd.close()
 
