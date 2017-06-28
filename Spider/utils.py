@@ -270,8 +270,9 @@ def sampleLineSpliter(line):
     samp.num_links = cols[6]
     samp.num_videos = cols[7]
     samp.trindex = cols[8]
-    samp.num_topics = cols[9]
-    samp.num_trending_topics = cols[10]
+    if len(cols) > 9:
+        samp.num_topics = cols[9]
+        samp.num_trending_topics = cols[10]
     return samp
 
 def uidToLink(uid):

@@ -207,7 +207,7 @@ def trindxStatus(pos, negs):
 if __name__ == '__main__':
     pos_data, negs_data  = loadData('../data/samples.train')
     #Trending Index histogram
-    trindxStatus(pos_data, negs_data)
+    # trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
 
     ######################Double X-Window###########
