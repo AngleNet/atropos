@@ -53,6 +53,9 @@ def loadDataSet(fn):
     # print (new_dataset.shape,num_pos)
     # print (_dataset.shape)
 
+def checkDataSet(dataset):
+    pass
+
 def preprocessing(dataset):
     dataset = dataset.sample(n=dataset.shape[0])
     _labels = ['num_followers', 'num_urls', 'content_len']
@@ -355,13 +358,13 @@ if __name__ == '__main__':
     else:
         proj_dir = sys.argv[1]
     _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos',
-                      'content_len', 'similarity', 'has_trending_topics']
+                      'content_len', 'similarity']
     feature_cases = {
-        'base': _base_features,
+        'base': _base_features + ['has_trending_topics'],
         'better1': _base_features + ['num_trending_topics'],
         'better2': _base_features + ['trending_index'],
     }
-    superParameterK(proj_dir, feature_cases, 'Bayes', 'base')
+    # superParameterK(proj_dir, feature_cases, 'Bayes', 'base')
     res_dir = proj_dir + '/result'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
@@ -373,4 +376,4 @@ if __name__ == '__main__':
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    # plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2'])
+    plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2'])
