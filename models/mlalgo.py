@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 import sklearn.model_selection as ms
 from sklearn import svm
 from sklearn import naive_bayes
+from sklearn import tree
 import sklearn.metrics as metrics
 import matplotlib.pyplot as plt
 import matplotlib
@@ -15,7 +16,7 @@ matplotlib.rcParams['font.family']='sans-serif'
 plt.rcParams['axes.unicode_minus']=False
 
 import pandas
-import sys
+import sys, glob
 sys.path.append('..')
 import Spider.utils
 
@@ -58,6 +59,9 @@ def preprocessing(dataset):
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
     for _label in _labels:
         dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
+    dataset['has_trending_topics']  /= 10
+    dataset['num_trending_topics'] /= 10
+    dataset['trending_index'] *= 100
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -186,15 +190,29 @@ def plotModelRoc2(dataset, feature_cases):
     features = dataset.filter(items=feature_cases['base'])
     rand = np.random.RandomState(0)
     classifiers = {
-        # 'LR': LogisticRegression(class_weight='balanced'),
-        'SVM':  svm.SVC(kernel='sigmoid', random_state=rand, probability=True),
-        #'Bayes': naive_bayes.GaussianNB(),
+        'LR': LogisticRegression(class_weight='balanced'),
+        #'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
+        # 'Bayes': naive_bayes.GaussianNB(),
+        # 'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
     }
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
         Spider.utils.debug('Modeling %s' % cls_name)
-        prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
+        _model = cls.fit(train_dataset, train_target)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
+
+        prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, ':',  lw=1.5, label='基准特征 %s (area = %0.2f)' % (cls_name, roc_auc))
@@ -206,7 +224,19 @@ def plotModelRoc2(dataset, feature_cases):
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
         Spider.utils.debug('Modeling %s' % cls_name)
-        prob = cls.fit(train_dataset, train_target).predict_proba(test_dataset)
+        _model = cls.fit(train_dataset, train_target)
+        prob = _model.predict_proba(test_dataset)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, lw=1.5, label='基准特征+流行度 %s (area = %0.2f)' % (cls_name, roc_auc))
@@ -220,9 +250,101 @@ def plotModelRoc2(dataset, feature_cases):
     plt.legend(loc="lower right")
     plt.show()
 
+def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
+    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
+                  better2='基准特征+话题热度')
+    rand = np.random.RandomState(0)
+    classifiers = {
+        'LR': LogisticRegression(class_weight='balanced'),
+        'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
+        'Bayes': naive_bayes.GaussianNB(),
+         'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
+    }
+    if model_name not in classifiers:
+        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
+            name=model_name, models=classifiers.keys()
+        ))
+        return
+    model = classifiers[model_name]
+    for case in feature_groups:
+        train_dataset, test_dataset, train_target, test_target = \
+            ms.train_test_split(dataset.filter(items=feature_cases[case]), dataset['pos'], test_size=0.1, random_state=rand)
+        Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[case]))
+        _model = model.fit(train_dataset, train_target)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
+
+        prob = _model.predict_proba(test_dataset)
+        fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
+        roc_auc = metrics.auc(fpr, tpr)
+        plt.plot(fpr, tpr, lw=1.5, label='%s %s (area = %0.2f)' % (groups[case], model_name, roc_auc))
+
+    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC 曲线')
+    plt.legend(loc="lower right")
+    plt.show()
 #PartIII
-def superParameterK(dataset, target):
-    pass
+def superParameterK(proj_dir, feature_cases, model_name, feature_group):
+    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
+             better2 = '基准特征+话题热度')
+    rand = np.random.RandomState(0)
+    classifiers = {
+        'LR': LogisticRegression(class_weight='balanced'),
+        'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
+        'Bayes': naive_bayes.GaussianNB(),
+        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
+    }
+    if model_name not in classifiers:
+        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
+            name=model_name, models=classifiers.keys()
+        ))
+        return
+    model = classifiers[model_name]
+    data_dir = proj_dir  + '/data'
+    dataset_fs = glob.glob('{dir}/samples.train.*'.format(dir=data_dir))
+    for _fname in dataset_fs:
+        dataset = loadDataSet(_fname)
+        train_dataset, test_dataset, train_target, test_target = \
+            ms.train_test_split(dataset.filter(items=feature_cases[feature_group]), dataset['pos'], test_size=0.1,
+                                random_state=rand)
+        Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[feature_group]))
+        _model = model.fit(train_dataset, train_target)
+        target_pred = _model.predict(test_dataset)
+
+        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
+        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
+        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+        ))
+        prob = _model.predict_proba(test_dataset)
+        fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
+        roc_auc = metrics.auc(fpr, tpr)
+        plt.plot(fpr, tpr, lw=1.5, label='%s %s (area = %0.2f)' % (groups[feature_group], model_name, roc_auc))
+    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC 曲线')
+    plt.legend(loc="lower right")
+    plt.show()
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -232,24 +354,18 @@ if __name__ == '__main__':
     res_dir = proj_dir + '/result'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
+    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'has_trending_topics']
     feature_cases = {
-        'base': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity'],
-        'better1': [],
-        'better2': [],
-        'better3': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'trending_index'],
-        'all': [],
+        'base': _base_features,
+        'better1': _base_features + ['num_trending_topics'],
+        'better2': _base_features + ['trending_index'],
     }
-    features = dataset.filter(items=feature_cases['better3'])
     target = dataset['pos']
+    features = dataset.filter(items=feature_cases['better2'])
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
-    cacModelPrecision(features, target, 'lr')
+    # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-
-
-
-
-
-
-
+    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2'])
+    # superParameterK(proj_dir, feature_cases, 'C4.5', 'base')

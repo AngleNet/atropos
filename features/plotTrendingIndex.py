@@ -207,7 +207,7 @@ def trindxStatus(pos, negs):
 if __name__ == '__main__':
     pos_data, negs_data  = loadData('../data/samples.train')
     #Trending Index histogram
-    #trindxStatus(pos_data, negs_data)
+    trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
 
     ######################Double X-Window###########
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     plt.ylabel(u"累积概率")
     plt.xlabel(u'微博热度')
     plt.ylim((0, 1.0))
-    plt.xlim(0, max(x))
+    plt.xlim(0, 0.045)
     plt.legend()
     plt.show()
 
