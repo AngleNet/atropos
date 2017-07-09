@@ -128,6 +128,16 @@ if __name__ == '__main__':
     with codecs.open('{dir}/samples.train'.format(dir=res_dir), 'w', 'utf-8') as fd:
         for samp in samps.values():
             fd.write(str(samp) + '\n')
+    all_fd = codecs.open('{dir}/samples.train'.format(dir=res_dir), 'w','utf-8')
+    pos_fd= codecs.open('{dir}/samples.train.pos'.format(dir=res_dir), 'w', 'utf-8')
+    neg_fd = codecs.open('{dir}/samples.train.neg'.format(dir=res_dir), 'w','utf-8')
+    for samp in samps.values():
+        all_fd.write(str(samp) + '\n')
+        if samp.pos:
+            pos_fd.write(str(samp) + '\n')
+        else:
+            neg_fd.write(str(samp) + '\n')
+
 
 
 

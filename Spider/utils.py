@@ -174,6 +174,7 @@ class WeiboSample:
         self.num_links = 0
         self.num_videos = 0
         self.text = ''
+
     def __str__(self):
         return '%(id)s,%(omid)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,' \
                '%(truly_retweeted)s,%(num_links)s,%(num_videos)s,%(text)s' % self.__dict__
@@ -632,6 +633,7 @@ def getTweets(uid, user_tweets, path):
 def topicLineSpliter(line):
     line = line.strip()
     cols = line.split(',')
+    cols = [ _.strip() for _ in cols]
     if len(cols) < 3:
         return None
     topic = Topic()
