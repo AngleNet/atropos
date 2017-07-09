@@ -40,7 +40,7 @@ if __name__ == '__main__':
         topics[_d] = sorted(topics[_d], reverse=True)
         total_reads.append(getTotalReads(fn))
 
-    # plotTotalReads(total_reads)
+    plotTotalReads(total_reads)
     topk = 10
     topk_topics = dict()
     for i in range(0, topk):
