@@ -174,6 +174,7 @@ class WeiboSample:
         self.num_links = 0
         self.num_videos = 0
         self.text = ''
+
     def __str__(self):
         return '%(id)s,%(omid)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,' \
                '%(truly_retweeted)s,%(num_links)s,%(num_videos)s,%(text)s' % self.__dict__
@@ -190,6 +191,9 @@ class Sample:
         self.num_links = 0
         self.num_videos = 0
         self.trindex = 0
+        self.num_topics = 0
+        self.num_trending_topics = 0
+
     def loadFromWeibo(self,weibo):
         if weibo is None:
             return
@@ -203,7 +207,7 @@ class Sample:
         self.num_videos = weibo.num_videos
     def __str__(self):
         return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s,' \
-               '%(num_links)s,%(num_videos)s,%(trindex)s' % self.__dict__
+               '%(num_links)s,%(num_videos)s,%(trindex)s,%(num_topics)s,%(num_trending_topics)s' % self.__dict__
 
 class TrainningSample:
     def __init__(self):
@@ -217,12 +221,16 @@ class TrainningSample:
         self.retweet_rate = 0
         self.interact_rate = 0
         self.trending_index = 0
+        self.num_topics = 0
+        self.num_trending_topics = 0
+        self.has_trending_topics = 0
         self.pos = 0
 
     def __str__(self):
         return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
-               '%(interact_rate)s,%(trending_index)s,%(pos)s' % self.__dict__
+               '%(interact_rate)s,%(trending_index)s,%(num_topics)s,' \
+               '%(num_trending_topics)s,%(has_trending_topics)s,%(pos)s' % self.__dict__
 
     @staticmethod
     def lineSpliter(line):
@@ -241,7 +249,10 @@ class TrainningSample:
         samp.retweet_rate = float(cols[7])
         samp.interact_rate = float(cols[8])
         samp.trending_index = float(cols[9])
-        samp.pos = int(cols[10])
+        samp.num_topics = int(cols[10])
+        samp.num_trending_topics = int(cols[11])
+        samp.has_trending_topics = int(cols[12])
+        samp.pos = int(cols[13])
         return samp
 
 
@@ -260,6 +271,9 @@ def sampleLineSpliter(line):
     samp.num_links = cols[6]
     samp.num_videos = cols[7]
     samp.trindex = cols[8]
+    if len(cols) > 9:
+        samp.num_topics = cols[9]
+        samp.num_trending_topics = cols[10]
     return samp
 
 def uidToLink(uid):
@@ -619,6 +633,7 @@ def getTweets(uid, user_tweets, path):
 def topicLineSpliter(line):
     line = line.strip()
     cols = line.split(',')
+    cols = [ _.strip() for _ in cols]
     if len(cols) < 3:
         return None
     topic = Topic()

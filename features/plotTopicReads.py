@@ -28,7 +28,7 @@ def plotTotalReads(reads):
     plt.figure()
     plt.plot(x, reads)
     plt.show()
-    os.abort('Exit')
+    os.abort()
 if __name__ == '__main__':
     data_dir = '../data'
     dates = sorted([os.path.basename(n).split('.')[0] for n in glob.glob(data_dir+'/*.topk_topic')])
@@ -63,5 +63,5 @@ if __name__ == '__main__':
     plt.xlabel('时间', horizontalalignment='right')
     plt.title('热点话题阅读量')
     plt.xlim([0, 0.4*len(dates)])
-    plt.xticks(np.arange(0.1, len(dates)*0.4, 0.4), [re.sub('-', '/', d)[6:] for d in dates])
+    plt.xticks(np.arange(0.1, len(dates)*0.4, 0.4), [re.sub('-', '/', d)[8:] for d in dates])
     plt.show()

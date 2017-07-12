@@ -14,25 +14,11 @@ class TopicsPerDay:
         self.topics = list()
         self.reads = 0
     def add(self, line):
-        line = line.strip()
-        if line == '':
-            return
-        cols = line.split(',')
-        if len(cols) == 1:
-            self.reads = int(line.split(':')[1])
-            return
-        tid = cols[0].strip()
-        rds = cols[1].strip()
-        name = ''
-        for k in cols[2:]:
-            name += k + ','
-        name = name[:-1]
-        topic = Spider.utils.Topic()
-        topic.idx = tid.strip()
-        topic.reads = rds.strip()
-        topic.name = name.strip()
-        self.topics.append(topic)
-
+        topic = Spider.utils.topicLineSpliter(line)
+        if 'Total_Reads' in line:
+            self.reads = int(line.split(':')[-1])
+        if topic:
+            self.topics.append(topic)
 
 def loadKeywords(fn):
     kws = dict()
@@ -87,12 +73,12 @@ def loadStopWords(resource_dir):
     stopw.append('\n')
     return stopw
 def cacTrindex(topics):
-    for topics in topics.values():
-        for topic in topics.topics:
-            topic.trindex = int(topic.reads) / topics.reads
+    for _topics in topics.values():
+        for topic in _topics.topics:
+            topic.trindex = int(topic.reads) / _topics.reads
 
 def loadSamples(proj_dir):
-    fn = proj_dir + 'data/tweets.sample'
+    fn = proj_dir + '/data/tweets.sample'
     samples = list()
     with codecs.open(fn, 'r', 'utf-8') as fd:
         for line in fd.readlines():
@@ -204,13 +190,42 @@ def cacParallel(samps, topics, kws):
             except Exception:
                 traceback.print_exc()
 
+def containsTopics(weibo, topics):
+    _content = weibo.text
+    names= list()
+    if len(_content) > 1:
+        _s = _content.find('#')
+        while _s != -1:
+            _t = _content[_s+1:].find('#')
+            if _t != -1:
+                names.append(_content[_s:_s+2+_t])
+                _content = _content[_s+2+_t:]
+                _s = _content.find('#')
+            else:
+                break
+    ntrtopics = 0
+    if weibo.time[:8] not in topics:
+        Spider.utils.debug('Missing topic information for {date}'.format(date=weibo.time[:8]))
+        return (len(names), ntrtopics)
+    for _topic in topics[weibo.time[:8]].topics:
+        if _topic.name in names:
+            ntrtopics += 1
+    return (len(names), ntrtopics)
+
 def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
     for weibo in weibos:
         #print('Processing: ' + str(samp), end='\n\t')
         index = cacIndex(weibo, topics, kws, stop_words)
+        ntopics, ntrtopics = containsTopics(weibo, topics)
         samp = Spider.utils.Sample()
         samp.loadFromWeibo(weibo)
         samp.trindex = index
+        samp.num_topics = ntopics
+        samp.num_trending_topics = ntrtopics
+        if samp.num_trending_topics == 0:
+            samp.has_topics = 0
+        else:
+            samp.has_topics = 1
         fd.write(str(samp) + '\n')
         fd.flush()
         #print('Index: ' + str(index) + '}')
@@ -228,12 +243,12 @@ def divideList(samps):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        proj_dir = '../'
+        proj_dir = '..'
     else:
         proj_dir = sys.argv[1]
-    stop_words = loadStopWords('{proj_dir}resource'.format(proj_dir=proj_dir))
-    kws = loadKeywords('{proj_dir}data/topics.kws'.format(proj_dir=proj_dir))
-    topics = loadTopics('{proj_dir}data'.format(proj_dir=proj_dir))
+    stop_words = loadStopWords('{proj_dir}/resource'.format(proj_dir=proj_dir))
+    kws = loadKeywords('{proj_dir}/data/topics.kws'.format(proj_dir=proj_dir))
+    topics = loadTopics('{proj_dir}/data'.format(proj_dir=proj_dir))
     cacTrindex(topics)
     samps = loadSamples(proj_dir)
     with codecs.open('{proj_dir}/result/sample'.format(proj_dir=proj_dir), 'w','utf-8') as wd:
