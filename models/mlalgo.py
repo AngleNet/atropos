@@ -58,13 +58,17 @@ def checkDataSet(dataset):
 
 def preprocessing(dataset):
     dataset = dataset.sample(n=dataset.shape[0])
-    _labels = ['num_followers', 'num_urls', 'content_len']
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
-    for _label in _labels:
-        dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
-    dataset['has_trending_topics']  /= 10
-    dataset['num_trending_topics'] /= 10
-    dataset['trending_index'] *= 25
+    dataset['certified'] /= 10
+    log_transformer = sklearn.preprocessing.FunctionTransformer(np.log10)
+    dataset['num_followers'] = log_transformer.transform(dataset['num_followers']).reshape(-1, 1)
+    dataset['num_followers'] = dataset['num_followers'].replace([np.inf, -np.inf], np.nan)
+    dataset['num_followers'] =  dataset['num_followers'].fillna(0)
+    dataset['num_urls'] /= 10
+    dataset['num_videos'] /= 10
+    dataset['content_len'] = min_max_scaler.fit_transform(dataset['content_len'].values.reshape(-1,1))
+    dataset['has_trending_topics'] /= 10
+    dataset['trending_index'] *= 10
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -254,8 +258,8 @@ def plotModelRoc2(dataset, feature_cases):
     plt.show()
 
 def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
-    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
-                  better2='基准特征+话题热度')
+    groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
+                  better2='基准特征+话题热度', better3='话题热度')
     rand = np.random.RandomState(0)
     classifiers = {
         'LR': LogisticRegression(class_weight='balanced'),
@@ -360,10 +364,12 @@ if __name__ == '__main__':
     _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos',
                       'content_len', 'similarity']
     feature_cases = {
-        'base': _base_features + ['has_trending_topics'],
-        'better1': _base_features + ['num_trending_topics'],
+        'base': _base_features,
+        'better1': _base_features + ['has_trending_topics'],
         'better2': _base_features + ['trending_index'],
+        'better3': ['trending_index']
     }
+
     # superParameterK(proj_dir, feature_cases, 'Bayes', 'base')
     res_dir = proj_dir + '/result'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
@@ -376,4 +382,4 @@ if __name__ == '__main__':
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2'])
+    plotSingleModelRoc(dataset, feature_cases, 'C4.5', ['base', 'better1', 'better2', 'better3'])
