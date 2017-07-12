@@ -1,6 +1,8 @@
 
 import codecs
 import os.path
+import sys
+sys.path.append('..')
 import glob
 import Spider.utils
 if __name__ == '__main__':
@@ -34,6 +36,7 @@ if __name__ == '__main__':
                     Spider.utils.debug('Missing {idx} in key words'.format(
                         idx=idx
                     ))
+                    continue
                 kws = ''
                 for _kw in cols[1:]:
                     kws += _kw + ';'
