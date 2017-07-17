@@ -149,7 +149,8 @@ def cacIndex3(samp, topics, stop_words):
         for kw in samp_kws:
             if kw not in intersect:
                 intersect.append(kw)
-        for kw in list(jieba.analyse.extract_tags(topic.name[1:-1])):
+        kws = list(jieba.analyse.extract_tags(topic.name[1:-1]))
+        for kw in kws:
             if kw not in intersect:
                 intersect.append(kw)
         v1 = list()
@@ -159,7 +160,7 @@ def cacIndex3(samp, topics, stop_words):
                 v1.append(1)
             else:
                 v1.append(0)
-            if kw in kws[topic.idx]:
+            if kw in kws:
                 v2.append(1)
             else:
                 v2.append(0)
