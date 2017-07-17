@@ -257,7 +257,7 @@ def plotModelRoc2(dataset, feature_cases):
     plt.legend(loc="lower right")
     plt.show()
 
-def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
+def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups, res_dir):
     groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
                   better2='基准特征+话题热度', better3='话题热度')
     rand = np.random.RandomState(0)
@@ -272,6 +272,8 @@ def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
             name=model_name, models=classifiers.keys()
         ))
         return
+    res_fd = codecs.open('{dir}/model_result.{model}'.format(dir=res_dir,
+                                                             model=model_name), 'w', 'utf-8')
     model = classifiers[model_name]
     for case in feature_groups:
         train_dataset, test_dataset, train_target, test_target = \
@@ -294,7 +296,13 @@ def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups):
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
         plt.plot(fpr, tpr, lw=1.5, label='%s %s (area = %0.2f)' % (groups[case], model_name, roc_auc))
-
+        res_fd.write('{precision:.3f}%,{recall:.3f}%,{f1:.3f}%,{roc:.3f}%\n'.format(
+            precision=precision*100,
+            recall = recall*100,
+            f1=f1_score*100,
+            roc=roc_auc*100
+        ))
+    res_fd.close()
     plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
@@ -382,4 +390,4 @@ if __name__ == '__main__':
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2', 'better3'])
+    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2', 'better3'], res_dir)
