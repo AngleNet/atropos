@@ -662,3 +662,29 @@ def dictExtend(d1, d2):
         if v not in d1:
             d1[v] = d2[v]
 
+def extractTopics(content):
+    topics = list()
+    while '#' in content:
+        s = content.find('#')
+        e = content[s+1:].find('#')
+        if e == -1:
+            break
+        topics.append(content[s:s+2+e])
+        content = content[s+e+2:]
+    return topics
+
+
+def unitTestExtractTopics():
+    topics = ['', '#topic1#', 'space#topic1#topic#topic2#']
+    res = [[], ['#topic1#'], ['#topic1#', '#topic2#']]
+    for i in range(0, len(topics)):
+        r = extractTopics(topics[i])
+        for j in range(0, len(res[i])):
+            if r[j] != res[i][j]:
+                debug('Failed in {msg}'.format(msg=topics[i]))
+
+
+if __name__ == '__main__':
+    unitTestExtractTopics()
+
+

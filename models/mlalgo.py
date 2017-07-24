@@ -363,6 +363,47 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
     plt.show()
     os.abort()
 
+def singleModelCV(dataset, feature_cases, model_name, feature_groups, res_dir):
+    groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
+                  better2='基准特征+话题热度', better3='话题热度')
+    rand = np.random.RandomState(0)
+    classifiers = {
+        'LR': LogisticRegression(class_weight='balanced'),
+        'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
+        'Bayes': naive_bayes.GaussianNB(),
+        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
+    }
+    if model_name not in classifiers:
+        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
+            name=model_name, models=classifiers.keys()
+        ))
+        return
+    res_fd = codecs.open('{dir}/model_result.{model}'.format(dir=res_dir,
+                                                             model=model_name), 'w', 'utf-8')
+    model = classifiers[model_name]
+    want_metrics = ['precision', 'f1', 'recall', 'roc_auc']
+    for case in feature_groups:
+        Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[case]))
+        train_dataset = dataset.filter(items=feature_cases[case])
+        train_target = dataset['pos']
+        scores = dict()
+        for _metric in want_metrics:
+            score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring=_metric)
+            scores[_metric] = score.mean()
+
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%, {roc_auc:.2f}%'.format(
+            prec=scores['precision'] * 100,
+            recall=scores['recall'] * 100,
+            fscore=scores['f1'] * 100,
+            roc_auc=scores['roc_auc']*100
+        ))
+
+        res_fd.write('{precision:.3f}%,{recall:.3f}%,{f1:.3f}%,{roc:.3f}%\n'.format(
+            precision=scores['precision'] * 100,
+            recall=scores['recall'] * 100,
+            f1=scores['f1'] * 100,
+            roc=scores['roc_auc'] * 100
+        ))
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -390,4 +431,5 @@ if __name__ == '__main__':
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2', 'better3'], res_dir)
+    # plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2', 'better3'], res_dir)
+    singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2', 'better3'], res_dir)

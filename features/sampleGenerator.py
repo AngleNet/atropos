@@ -104,8 +104,13 @@ if __name__ == '__main__':
             Spider.utils.debug('Duplicate sample of {mid}, bypassing'.format(
                 mid=samp.id
             ))
+
         if int(samp.truly_retweeted) == 1:
             _samp.pos = 1
+
+        if _samp.pos == 0 and _samp.trending_index > 0.02: #filter negtive samples.
+            del samps[_samp.id]
+            continue
 
         if samp.uid not in user_activity:
             Spider.utils.debug('Missing user posting habit for {uid}'.format(

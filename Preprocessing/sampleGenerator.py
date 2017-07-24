@@ -43,6 +43,7 @@ def containsTopic(samp):
     if t == -1:
         return False
     return True
+
 def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topics):
     pos_samp = dict()
     neg_samp = dict()
@@ -58,6 +59,8 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topic
     if tweets is None:
         return (pos_samp, neg_samp)
     last_hops = list()
+
+    # Positive samples
     for tweet in tweets.values():
         if tweet.omid == '0' or tweet.omid not in origin_tweets:
             continue
@@ -78,10 +81,13 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topic
             samp.ouid = uid
         else:
             continue
-        if uid not in last_hops:
+
+        if uid not in last_hops and len(Spider.utils.extractTopics(samp.text)) > 1:
             last_hops.append(uid)
         samp.truly_retweeted = 1
         pos_samp[samp.id] = samp
+
+    # Negative samples
     for hop in last_hops:
         tmp_tweets = getTweets(hop, data_dir, user_tweets, False)
         if tmp_tweets is None:
@@ -127,6 +133,7 @@ def generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topic
     for mid in tmp:
         del neg_samp[mid]
     return (pos_samp, neg_samp)
+
 def generateSamples(proj_dir, topics):
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
@@ -139,7 +146,6 @@ def generateSamples(proj_dir, topics):
         _pos, _neg =  generateSampleForUser(user, user_tweets, user_origin_tweets, proj_dir, topics)
         Spider.utils.dictExtend(pos_samps, _pos)
         Spider.utils.dictExtend(neg_samps, _neg)
-
     ratio = 0.2
     if len(pos_samps) < len(neg_samps)*ratio:
         num_pos = len(pos_samps)
