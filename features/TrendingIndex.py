@@ -1,4 +1,5 @@
 import jieba
+import jieba.analyse
 import math
 import operator
 import glob, codecs
@@ -103,7 +104,7 @@ def cacIndex2(samp, topics, kws, stop_words):
             tridx += topic.trindex
     return tridx
 
-def cacIndex(samp, topics, kws, stop_words):
+def cacIndex(samp, topics, kws, stop_words, match_topic_name_only):
     topics = topics[samp.time[:8]]
     topics = sorted(topics.topics, key=lambda x: x.idx)
     tridx = 0
@@ -117,6 +118,8 @@ def cacIndex(samp, topics, kws, stop_words):
         if samp.text.find(topic.name) != -1:
             tridx += topic.trindex
             continue
+        if match_topic_name_only:
+            continue
         w = weighter(samp, samp_kws, topic, kws)
         tridx += w
         # if w > 0:
@@ -126,6 +129,42 @@ def cacIndex(samp, topics, kws, stop_words):
         # else:
         #     print('weighter: ' + str(w), end='\n\t')
         # time.sleep(3)
+    return tridx
+
+def cacIndex3(samp, topics, stop_words):
+    topics = topics[samp.time[:8]]
+    topics = sorted(topics.topics, key=lambda x: x.idx)
+    tridx  = 0
+    samp_kws = list(jieba.analyse.extract_tags(samp.text, topK=5))
+    samp_kws = [kw for kw in samp_kws if kw.strip() != '' and kw not in stop_words]
+    if len(samp_kws) == 0:
+        return 0
+    for topic in topics:
+        if topic.name == '##':
+            continue
+        if samp.text.find(topic.name) != -1:
+            tridx += topic.trindex
+            continue
+        intersect = list()
+        for kw in samp_kws:
+            if kw not in intersect:
+                intersect.append(kw)
+        kws = list(jieba.analyse.extract_tags(topic.name[1:-1]))
+        for kw in kws:
+            if kw not in intersect:
+                intersect.append(kw)
+        v1 = list()
+        v2 = list()
+        for kw in intersect:
+            if kw in samp_kws:
+                v1.append(1)
+            else:
+                v1.append(0)
+            if kw in kws:
+                v2.append(1)
+            else:
+                v2.append(0)
+        tridx += cosSimilarity(v1, v2) * topic.trindex
     return tridx
 
 def weighter(samp, samp_kws, topic, kws):
@@ -215,7 +254,12 @@ def containsTopics(weibo, topics):
 def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
     for weibo in weibos:
         #print('Processing: ' + str(samp), end='\n\t')
-        index = cacIndex(weibo, topics, kws, stop_words)
+        # Case1: Expand topics and match weibo contents.
+        index = cacIndex(weibo, topics, kws, stop_words, False)
+        # Case2: Match weibo and topics fully
+        # index = cacIndex(weibo, topics, kws, stop_words, True)
+        # Case3: Split topic name and weibo contents.
+        # index = cacIndex3(weibo, topics, stop_words)
         ntopics, ntrtopics = containsTopics(weibo, topics)
         samp = Spider.utils.Sample()
         samp.loadFromWeibo(weibo)
