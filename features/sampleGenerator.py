@@ -74,16 +74,16 @@ if __name__ == '__main__':
         if samp.ouid != '' and samp.ouid in users:
                 _samp.certified = int(users[samp.ouid].isCertified)
                 _samp.num_followers = int(users[samp.ouid].follower)
+                _samp.num_followees = int(users[samp.ouid].followee)
         else:
             Spider.utils.debug('Personal information of user {uid} not found'
-                               ', setting to 0'.format(
-                uid=samp.ouid
-            ))
+                               ', setting to 0'.format(uid=samp.ouid))
         _samp.num_urls = int(samp.num_links)
         _samp.num_videos = int(samp.num_videos)
         _samp.content_len = len(samp.text)
 
         if samp.id in trdx_samps:
+            _samp.similarity = float(trdx_samps[samp.id].similarity)
             _samp.num_topics = int(trdx_samps[samp.id].num_topics)
             _samp.num_trending_topics = int(trdx_samps[samp.id].num_trending_topics)
             _samp.trending_index = float(trdx_samps[samp.id].trindex)
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         if int(samp.truly_retweeted) == 1:
             _samp.pos = 1
 
-        if _samp.pos == 0 and _samp.trending_index > 0.02: #filter negtive samples.
+        if _samp.pos == 0 and _samp.trending_index > 0.01: #filter negtive samples.
             del samps[_samp.id]
             continue
 

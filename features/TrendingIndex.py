@@ -251,7 +251,7 @@ def containsTopics(weibo, topics):
             ntrtopics += 1
     return (len(names), ntrtopics)
 
-def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
+def executor(weibos, topics, kws, fd, stop_words, users):
     for weibo in weibos:
         #print('Processing: ' + str(samp), end='\n\t')
         # Case1: Expand topics and match weibo contents.
@@ -266,6 +266,8 @@ def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
         samp.trindex = index
         samp.num_topics = ntopics
         samp.num_trending_topics = ntrtopics
+        if samp.uid in users:
+            samp.similarity = labelSimilarity(weibo.text, users[samp.uid], stop_words)
         if samp.num_trending_topics == 0:
             samp.has_topics = 0
         else:
@@ -273,6 +275,36 @@ def trendingIndexExecutor(weibos, topics, kws, fd, stop_words):
         fd.write(str(samp) + '\n')
         fd.flush()
         #print('Index: ' + str(index) + '}')
+
+def labelSimilarity(content, user, stop_words):
+    samp_kws = list(jieba.analysis.extract_tags(content, topK=50))
+    samp_kws = [kw for kw in samp_kws if kw.strip() != '' and kw not in stop_words]
+    if len(samp_kws) == 0:
+        return 0
+    labels = list()
+    for label in user.label.split(';'):
+        lbs = list(jieba.analysis.extract_tags(label))
+        labels.extend(lbs)
+    labels = [kw for kw in labels if kw.strip() != '' and kw not in stop_words]
+    intersect = list()
+    for kw in samp_kws:
+        if kw not in intersect:
+            intersect.append(kw)
+    for kw in labels:
+        if kw not in intersect:
+            intersect.append(kw)
+    v1 = list()
+    v2 = list()
+    for kw in intersect:
+        if kw in samp_kws:
+            v1.append(1)
+        else:
+            v1.append(0)
+        if kw in labels:
+            v2.append(1)
+        else:
+            v2.append(0)
+    return cosSimilarity(v1, v2)
 
 def divideList(samps):
     length = len(samps)
@@ -293,7 +325,8 @@ if __name__ == '__main__':
     stop_words = loadStopWords('{proj_dir}/resource'.format(proj_dir=proj_dir))
     kws = loadKeywords('{proj_dir}/data/topics.kws'.format(proj_dir=proj_dir))
     topics = loadTopics('{proj_dir}/data'.format(proj_dir=proj_dir))
+    users = Spider.utils.loadUsers('{proj_dir}/data/users'.format(proj_dir=proj_dir))
     cacTrindex(topics)
     samps = loadSamples(proj_dir)
     with codecs.open('{proj_dir}/result/sample'.format(proj_dir=proj_dir), 'w','utf-8') as wd:
-        trendingIndexExecutor(samps, topics, kws, wd, stop_words)
+        executor(samps, topics, kws, wd, stop_words, users)

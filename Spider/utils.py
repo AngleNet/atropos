@@ -193,6 +193,7 @@ class Sample:
         self.trindex = 0
         self.num_topics = 0
         self.num_trending_topics = 0
+        self.similarity = 0
 
     def loadFromWeibo(self,weibo):
         if weibo is None:
@@ -207,13 +208,15 @@ class Sample:
         self.num_videos = weibo.num_videos
     def __str__(self):
         return '%(id)s,%(uid)s,%(time)s,%(ouid)s,%(otime)s,%(truly_retweeted)s,' \
-               '%(num_links)s,%(num_videos)s,%(trindex)s,%(num_topics)s,%(num_trending_topics)s' % self.__dict__
+               '%(num_links)s,%(num_videos)s,%(trindex)s,%(num_topics)s,' \
+               '%(num_trending_topics)s,%(similarity)s' % self.__dict__
 
 class TrainningSample:
     def __init__(self):
         self.id = ''
         self.certified = 0
         self.num_followers = 0
+        self.num_followees = 0
         self.num_urls = 0
         self.num_videos = 0
         self.content_len = 0
@@ -227,7 +230,7 @@ class TrainningSample:
         self.pos = 0
 
     def __str__(self):
-        return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
+        return '%(id)s,%(certified)s,%(num_followers)s,%(num_followees)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
                '%(interact_rate)s,%(trending_index)s,%(num_topics)s,' \
                '%(num_trending_topics)s,%(has_trending_topics)s,%(pos)s' % self.__dict__
@@ -242,17 +245,18 @@ class TrainningSample:
         samp.id = cols[0]
         samp.certified = int(cols[1])
         samp.num_followers = int(cols[2])
-        samp.num_urls = int(cols[3])
-        samp.num_videos = int(cols[4])
-        samp.content_len =  int(cols[5])
-        samp.similarity = float(cols[6])
-        samp.retweet_rate = float(cols[7])
-        samp.interact_rate = float(cols[8])
-        samp.trending_index = float(cols[9])
-        samp.num_topics = int(cols[10])
-        samp.num_trending_topics = int(cols[11])
-        samp.has_trending_topics = int(cols[12])
-        samp.pos = int(cols[13])
+        samp.num_followees = int(cols[3])
+        samp.num_urls = int(cols[4])
+        samp.num_videos = int(cols[5])
+        samp.content_len =  int(cols[6])
+        samp.similarity = float(cols[7])
+        samp.retweet_rate = float(cols[8])
+        samp.interact_rate = float(cols[9])
+        samp.trending_index = float(cols[10])
+        samp.num_topics = int(cols[11])
+        samp.num_trending_topics = int(cols[12])
+        samp.has_trending_topics = int(cols[13])
+        samp.pos = int(cols[14])
         return samp
 
 
@@ -274,6 +278,7 @@ def sampleLineSpliter(line):
     if len(cols) > 9:
         samp.num_topics = cols[9]
         samp.num_trending_topics = cols[10]
+        samp.similarity = cols[11]
     return samp
 
 def uidToLink(uid):
