@@ -432,4 +432,6 @@ if __name__ == '__main__':
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
     # plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2', 'better3'], res_dir)
+    singleModelCV(dataset, feature_cases, 'LR', ['base', 'better1', 'better2', 'better3'], res_dir)
     singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2', 'better3'], res_dir)
+    singleModelCV(dataset, feature_cases, 'C4.5', ['base', 'better1', 'better2', 'better3'], res_dir)
