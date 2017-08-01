@@ -23,6 +23,21 @@ def loadData(fn):
                 negs.append(samp.trending_index)
     return (pos, negs)
 
+def load(fn):
+    pos = list()
+    negs = list()
+    with codecs.open(fn, 'r', 'utf-8') as fd:
+        for line in fd.readlines():
+            line = line.strip()
+            if line == '':
+                continue
+            cols = line.split(',')
+            if cols[5] == '1':
+                pos.append(float(cols[-1]))
+            else:
+                negs.append(float(cols[-1]))
+    return (pos, negs)
+
 def caculateProb(negs, pos):
     seq, width = sequence(negs, pos)
     trindex = dict()
@@ -37,21 +52,25 @@ def caculateProb(negs, pos):
     for _pos in pos:
         idx = match(seq, _pos)
         trindex[idx]['pos'] += 1
-    erase = False
-    last_seq = 0
+    # erase = False
+    # last_seq = 0
+    # for _seq in seq:
+    #     if erase:
+    #         trindex[last_seq]['pos'] += trindex[_seq]['pos']
+    #         trindex[last_seq]['negs'] += trindex[_seq]['negs']
+    #         del trindex[_seq]
+    #         continue
+    #     if trindex[_seq]['pos'] == 0:
+    #         trindex[last_seq]['pos'] += trindex[_seq]['pos']
+    #         trindex[last_seq]['negs'] += trindex[_seq]['negs']
+    #         del trindex[_seq]
+    #         erase = True
+    #         continue
+    #     last_seq = _seq
     for _seq in seq:
-        if erase:
-            trindex[last_seq]['pos'] += trindex[_seq]['pos']
-            trindex[last_seq]['negs'] += trindex[_seq]['negs']
+        if trindex[_seq]['pos'] < 4 or \
+            trindex[_seq]['negs'] < 4:
             del trindex[_seq]
-            continue
-        if trindex[_seq]['pos'] == 0 or trindex[_seq]['negs'] == 0:
-            trindex[last_seq]['pos'] += trindex[_seq]['pos']
-            trindex[last_seq]['negs'] += trindex[_seq]['negs']
-            del trindex[_seq]
-            erase = True
-            continue
-        last_seq = _seq
     for _seq in trindex.keys():
         trindex[_seq] = trindex[_seq]['pos'] / (trindex[_seq]['pos'] + trindex[_seq]['negs'])
     x = [k for k in sorted(trindex.keys())]
@@ -107,17 +126,17 @@ def match(seq, samp):
 
 def sequence(negs, pos):
     _max = max((max(negs), max(pos)))
-    nr_parts = 100
+    nr_parts = 80
     step = _max / nr_parts
     seq = [i*step for i in range(0, nr_parts)]
     return (seq, step)
+
 def trendingIndexFilter(data, _max):
     res = list()
     for item in data:
         if item <  _max:
             res.append(item)
     return res
-
 
 def double(x, pos, width):
     _x = list()
@@ -205,13 +224,17 @@ def trindxStatus(pos, negs):
     os.abort()
 
 if __name__ == '__main__':
-    pos_data, negs_data  = loadData('../data/samples.train')
+    # pos_data, negs_data  = loadData('../data/samples.train')
+    proj_dir = '..'
+    data_dir = proj_dir + '/data'
+    res_dir = proj_dir + '/result'
+    pos_data, negs_data  = load('{data_dir}/samples.train'.format(data_dir=data_dir))
     #Trending Index histogram
     # trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
 
     ######################Double X-Window###########
-    x, pos, width= double(x, pos, width)
+    # x, pos, width= double(x, pos, width)
     neg = [1 - y for y in pos]
     ##############################################
     # fig, pos_axe = plt.subplots()
@@ -228,7 +251,11 @@ if __name__ == '__main__':
                       edgecolor='w')
     plt_neg = plt.bar(x, neg, width, color='#fb6b41',
                       linewidth=0.2, edgecolor='w', bottom=pos)
-
+    Spider.utils.dumpPlot(dict(
+        file='{res_dir}/转发概率.txt'.format(res_dir=res_dir),
+        xlabel=dict(label='微博热度值', data=x),
+        ylabel=dict(label='转发概率', data=pos)
+    ))
     # plt.title('X: Num Of Retweets Y:  Retweet Probability')
     #plt.grid(True)
     plt.ylabel(u"转发概率")
@@ -242,8 +269,18 @@ if __name__ == '__main__':
 
     x, pos, width = cacCumProbPos(negs_data, pos_data)
     plt_pos = plt.plot(x, pos, color='#339194', label='转发')
+    Spider.utils.dumpPlot(dict(
+        file='{res_dir}/CDF-转发.txt'.format(res_dir=res_dir),
+        xlabel=dict(label='微博热度值', data=x),
+        ylabel=dict(label='转发累积概率', data=pos)
+    ))
     x, neg, width = cacCumProbNeg(negs_data, pos_data)
     plt_neg = plt.plot(x, neg,  color='#fb6b41', label='忽略')
+    Spider.utils.dumpPlot(dict(
+        file='{res_dir}/CDF-忽略.txt'.format(res_dir=res_dir),
+        xlabel=dict(label='微博热度值', data=x),
+        ylabel=dict(label='忽略累积概率', data=pos)
+    ))
     ##################Old Function###################
     # pos_data = trendingIndexFilter(pos_data,bins[-1])
     # neg_data = trendingIndexFilter(negs_data, bins[-1])
@@ -255,7 +292,7 @@ if __name__ == '__main__':
     plt.ylabel(u"累积概率")
     plt.xlabel(u'微博热度')
     plt.ylim((0, 1.0))
-    plt.xlim(0, 0.045)
+    plt.xlim(0, 0.06)
     plt.legend()
     plt.show()
 

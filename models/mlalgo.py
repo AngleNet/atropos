@@ -414,7 +414,7 @@ if __name__ == '__main__':
                       'content_len', 'similarity']
     feature_cases = {
         'base': _base_features,
-        'better1': _base_features + ['has_trending_topics'],
+        #'better1': _base_features + ['has_trending_topics'],
         'better2': _base_features + ['trending_index'],
         'better3': ['trending_index']
     }

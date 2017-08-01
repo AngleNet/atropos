@@ -678,6 +678,13 @@ def extractTopics(content):
         content = content[s+e+2:]
     return topics
 
+def dumpPlot(data):
+    with codecs.open(data['file'], 'w', 'utf-8') as fd:
+        fd.write('{xlabel},{ylabel}\n'.format(xlabel=data['xlabel']['label'],
+                                            ylabel=data['ylabel']['label']))
+        for _idx in range(0, len(data['xlabel']['data'])):
+            fd.write('{x},{y}\n'.format(x=data['xlabel']['data'][_idx],
+                                        y=data['ylabel']['data'][_idx]))
 
 def unitTestExtractTopics():
     topics = ['', '#topic1#', 'space#topic1#topic#topic2#']
