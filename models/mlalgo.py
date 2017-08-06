@@ -277,7 +277,7 @@ def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups, res_d
     model = classifiers[model_name]
     for case in feature_groups:
         train_dataset, test_dataset, train_target, test_target = \
-            ms.train_test_split(dataset.filter(items=feature_cases[case]), dataset['pos'], test_size=0.1, random_state=rand)
+            ms.train_test_split(dataset.filter(items=feature_cases[case]), dataset['pos'], test_size=0.4, random_state=rand)
         Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[case]))
         _model = model.fit(train_dataset, train_target)
         target_pred = _model.predict(test_dataset)
@@ -295,6 +295,18 @@ def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups, res_d
         prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
+        Spider.utils.dumpPlot(dict(
+            file='{res}/{model}-{feature}-ROC.txt'.format(res=res_dir,
+                                                          model=model_name, feature=groups[case]),
+            xlabel=dict(
+                label='False Positive Rate',
+                data=fpr
+            ),
+            ylabel=dict(
+                label='True Positive Rate',
+                data=tpr
+            )
+        ))
         plt.plot(fpr, tpr, lw=1.5, label='%s %s (area = %0.2f)' % (groups[case], model_name, roc_auc))
         res_fd.write('{precision:.3f}%,{recall:.3f}%,{f1:.3f}%,{roc:.3f}%\n'.format(
             precision=precision*100,
@@ -363,6 +375,37 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
     plt.show()
     os.abort()
 
+def dumpTopicExpanderKRoc(dataset, feature_cases, model_name,
+                          feature_groups, data_dir, res_dir):
+    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
+                  better2='基准特征+话题热度')
+    rand = np.random.RandomState(0)
+    classifiers = {
+        'LR': LogisticRegression(class_weight='balanced'),
+        'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
+        'Bayes': naive_bayes.GaussianNB(),
+        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
+    }
+    if model_name not in classifiers:
+        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
+            name=model_name, models=classifiers.keys()
+        ))
+        return
+    model = classifiers[model_name]
+    dataset_fs = glob.glob('{dir}/samples.train.*'.format(dir=data_dir))
+    for case in feature_groups:
+        with codecs.open('{dir}/topic-window-{name}-{case}.txt'.format(dir=res_dir,
+                                                            name=model_name ,case=groups[case]), 'w', 'utf-8') as fd:
+            fd.write('{x},{y}\n'.format(x='扩展词个数', y='ROC'))
+            for _fname in sorted(dataset_fs, key=lambda x: int(x.split('.')[-1])):
+                _num = os.path.basename(_fname).split('.')[-1]
+                dataset = loadDataSet(_fname)
+                dataset = preprocessing(dataset)
+                train_dataset = dataset.filter(items=feature_cases[case])
+                train_target = dataset['pos']
+                score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring='roc_auc').mean()
+                fd.write('{k},{roc}\n'.format(k = _num, roc=score))
+    pass
 def singleModelCV(dataset, feature_cases, model_name, feature_groups, res_dir):
     groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
                   better2='基准特征+话题热度', better3='话题热度')
@@ -414,13 +457,14 @@ if __name__ == '__main__':
                       'content_len', 'similarity']
     feature_cases = {
         'base': _base_features,
-        #'better1': _base_features + ['has_trending_topics'],
+        'better1': _base_features + ['has_trending_topics'],
         'better2': _base_features + ['trending_index'],
         'better3': ['trending_index']
     }
 
     # superParameterK(proj_dir, feature_cases, 'Bayes', 'base')
     res_dir = proj_dir + '/result'
+    data_dir = proj_dir +'/data'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
 
@@ -431,7 +475,10 @@ if __name__ == '__main__':
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    # plotSingleModelRoc(dataset, feature_cases, 'LR', ['base', 'better1', 'better2', 'better3'], res_dir)
-    singleModelCV(dataset, feature_cases, 'LR', ['base', 'better1', 'better2', 'better3'], res_dir)
-    singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better1', 'better2', 'better3'], res_dir)
-    singleModelCV(dataset, feature_cases, 'C4.5', ['base', 'better1', 'better2', 'better3'], res_dir)
+    # plotSingleModelRoc(dataset, feature_cases, 'C4.5', ['base', 'better2'], res_dir)
+    # singleModelCV(dataset, feature_cases, 'LR', ['base', 'better2'], res_dir)
+    # singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better2'], res_dir)
+    # singleModelCV(dataset, feature_cases, 'C4.5', ['base', 'better2'], res_dir)
+    # dumpTopicExpanderKRoc(dataset, feature_cases, 'LR', ['better2'], data_dir, res_dir)
+    # dumpTopicExpanderKRoc(dataset, feature_cases, 'Bayes', ['better2'], data_dir, res_dir)
+    # dumpTopicExpanderKRoc(dataset, feature_cases, 'C4.5', ['better2'], data_dir, res_dir)

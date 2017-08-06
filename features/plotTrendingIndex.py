@@ -67,9 +67,11 @@ def caculateProb(negs, pos):
     #         erase = True
     #         continue
     #     last_seq = _seq
+    erase = False
     for _seq in seq:
-        if trindex[_seq]['pos'] < 4 or \
-            trindex[_seq]['negs'] < 4:
+        if trindex[_seq]['pos'] == 0 and trindex[_seq]['negs'] == 0:
+            erase = True
+        if erase  and (trindex[_seq]['pos'] < 4 or trindex[_seq]['negs'] < 4):
             del trindex[_seq]
     for _seq in trindex.keys():
         trindex[_seq] = trindex[_seq]['pos'] / (trindex[_seq]['pos'] + trindex[_seq]['negs'])
@@ -126,7 +128,7 @@ def match(seq, samp):
 
 def sequence(negs, pos):
     _max = max((max(negs), max(pos)))
-    nr_parts = 80
+    nr_parts = 100
     step = _max / nr_parts
     seq = [i*step for i in range(0, nr_parts)]
     return (seq, step)
@@ -224,11 +226,12 @@ def trindxStatus(pos, negs):
     os.abort()
 
 if __name__ == '__main__':
-    # pos_data, negs_data  = loadData('../data/samples.train')
+
     proj_dir = '..'
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
-    pos_data, negs_data  = load('{data_dir}/samples.train'.format(data_dir=data_dir))
+    # pos_data, negs_data  = load('{data_dir}/samples.train'.format(data_dir=data_dir))
+    pos_data, negs_data  = loadData('{data_dir}/samples.train'.format(data_dir=data_dir))
     #Trending Index histogram
     # trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
