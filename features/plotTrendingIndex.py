@@ -52,27 +52,29 @@ def caculateProb(negs, pos):
     for _pos in pos:
         idx = match(seq, _pos)
         trindex[idx]['pos'] += 1
-    # erase = False
-    # last_seq = 0
-    # for _seq in seq:
-    #     if erase:
-    #         trindex[last_seq]['pos'] += trindex[_seq]['pos']
-    #         trindex[last_seq]['negs'] += trindex[_seq]['negs']
-    #         del trindex[_seq]
-    #         continue
-    #     if trindex[_seq]['pos'] == 0:
-    #         trindex[last_seq]['pos'] += trindex[_seq]['pos']
-    #         trindex[last_seq]['negs'] += trindex[_seq]['negs']
-    #         del trindex[_seq]
-    #         erase = True
-    #         continue
-    #     last_seq = _seq
     erase = False
+    last_seq = 0
     for _seq in seq:
-        if trindex[_seq]['pos'] == 0 and trindex[_seq]['negs'] == 0:
-            erase = True
-        if erase  and (trindex[_seq]['pos'] < 4 or trindex[_seq]['negs'] < 4):
+        if erase:
+            trindex[last_seq]['pos'] += trindex[_seq]['pos']
+            trindex[last_seq]['negs'] += trindex[_seq]['negs']
             del trindex[_seq]
+            continue
+        if trindex[_seq]['pos'] == 0:
+            trindex[last_seq]['pos'] += trindex[_seq]['pos']
+            trindex[last_seq]['negs'] += trindex[_seq]['negs']
+            del trindex[_seq]
+            erase = True
+            continue
+        last_seq = _seq
+
+
+    # erase = False
+    # for _seq in seq:
+    #     if trindex[_seq]['pos'] == 0 and trindex[_seq]['negs'] == 0:
+    #         erase = True
+    #     if erase  and (trindex[_seq]['pos'] < 4 or trindex[_seq]['negs'] < 4):
+    #         del trindex[_seq]
     for _seq in trindex.keys():
         trindex[_seq] = trindex[_seq]['pos'] / (trindex[_seq]['pos'] + trindex[_seq]['negs'])
     x = [k for k in sorted(trindex.keys())]
@@ -128,7 +130,7 @@ def match(seq, samp):
 
 def sequence(negs, pos):
     _max = max((max(negs), max(pos)))
-    nr_parts = 100
+    nr_parts = 90
     step = _max / nr_parts
     seq = [i*step for i in range(0, nr_parts)]
     return (seq, step)
@@ -230,8 +232,8 @@ if __name__ == '__main__':
     proj_dir = '..'
     data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
-    # pos_data, negs_data  = load('{data_dir}/samples.train'.format(data_dir=data_dir))
-    pos_data, negs_data  = loadData('{data_dir}/samples.train'.format(data_dir=data_dir))
+    pos_data, negs_data  = load('{data_dir}/samples.train'.format(data_dir=data_dir))
+    # pos_data, negs_data  = loadData('{data_dir}/samples.train'.format(data_dir=data_dir))
     #Trending Index histogram
     # trindxStatus(pos_data, negs_data)
     x, pos, width = caculateProb(negs_data, pos_data)
