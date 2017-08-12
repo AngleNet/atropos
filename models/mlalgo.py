@@ -67,7 +67,6 @@ def preprocessing(dataset):
     dataset['num_urls'] /= 10
     dataset['num_videos'] /= 10
     dataset['content_len'] = min_max_scaler.fit_transform(dataset['content_len'].values.reshape(-1,1))
-    dataset['has_trending_topics'] /= 10
     dataset['trending_index'] *= 10
     return dataset
 
@@ -226,7 +225,7 @@ def plotModelRoc2(dataset, feature_cases):
 
     # Case: better3
     #       base + trending_index
-    features = dataset.filter(items=feature_cases['better3'])
+    features = dataset.filter(items=feature_cases['better2'])
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
     for cls_name, cls in classifiers.items():
@@ -286,15 +285,17 @@ def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups, res_d
         recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
         f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
 
-        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
-            prec=precision * 100,
-            recall=recall * 100,
-            fscore=f1_score * 100,
-        ))
+
 
         prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
+        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%, {auc:.2f}'.format(
+            prec=precision * 100,
+            recall=recall * 100,
+            fscore=f1_score * 100,
+            auc=roc_auc*100,
+        ))
         Spider.utils.dumpPlot(dict(
             file='{res}/{model}-{feature}-ROC.txt'.format(res=res_dir,
                                                           model=model_name, feature=groups[case]),
@@ -375,7 +376,7 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
     plt.show()
     os.abort()
 
-def dumpTopicExpanderKRoc(dataset, feature_cases, model_name,
+def dumpTopicExpanderKRoc(feature_cases, model_name,
                           feature_groups, data_dir, res_dir):
     groups = dict(base='基准特征', better1='基准特征+包含话题个数',
                   better2='基准特征+话题热度')
@@ -393,18 +394,30 @@ def dumpTopicExpanderKRoc(dataset, feature_cases, model_name,
         return
     model = classifiers[model_name]
     dataset_fs = glob.glob('{dir}/samples.train.*'.format(dir=data_dir))
+    want_metrics = ['precision', 'f1', 'recall', 'roc_auc']
     for case in feature_groups:
         with codecs.open('{dir}/topic-window-{name}-{case}.txt'.format(dir=res_dir,
                                                             name=model_name ,case=groups[case]), 'w', 'utf-8') as fd:
-            fd.write('{x},{y}\n'.format(x='扩展词个数', y='ROC'))
+            fd.write('{x},{precision}, {f1}, {recall},{y}\n'.format(x='扩展词个数',
+                                                                    precision = '准确率',
+                                                                    f1 = 'F1',
+                                                                    recall = '召回率',
+                                                                    y='ROC'))
             for _fname in sorted(dataset_fs, key=lambda x: int(x.split('.')[-1])):
                 _num = os.path.basename(_fname).split('.')[-1]
                 dataset = loadDataSet(_fname)
                 dataset = preprocessing(dataset)
                 train_dataset = dataset.filter(items=feature_cases[case])
                 train_target = dataset['pos']
-                score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring='roc_auc').mean()
-                fd.write('{k},{roc}\n'.format(k = _num, roc=score))
+                scores = dict()
+                for _metric in want_metrics:
+                    score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring=_metric)
+                    scores[_metric] = score.mean()
+                fd.write('{k},{precision},{f1},{recall},{roc_auc}\n'.format(k = _num,
+                                                                        precision=scores['precision'],
+                                                                        f1 = scores['f1'],
+                                                                        recall=scores['recall'],
+                                                                        roc_auc=scores['roc_auc']))
     pass
 def singleModelCV(dataset, feature_cases, model_name, feature_groups, res_dir):
     groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
@@ -468,17 +481,17 @@ if __name__ == '__main__':
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
 
-    target = dataset['pos']
-    features = dataset.filter(items=feature_cases['better2'])
+    # target = dataset['pos']
+    # features = dataset.filter(items=feature_cases['better2'])
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
     # plotModelRoc2(dataset, feature_cases)
-    # plotSingleModelRoc(dataset, feature_cases, 'C4.5', ['base', 'better2'], res_dir)
-    # singleModelCV(dataset, feature_cases, 'LR', ['base', 'better2'], res_dir)
-    # singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better2'], res_dir)
-    # singleModelCV(dataset, feature_cases, 'C4.5', ['base', 'better2'], res_dir)
-    # dumpTopicExpanderKRoc(dataset, feature_cases, 'LR', ['better2'], data_dir, res_dir)
-    # dumpTopicExpanderKRoc(dataset, feature_cases, 'Bayes', ['better2'], data_dir, res_dir)
-    # dumpTopicExpanderKRoc(dataset, feature_cases, 'C4.5', ['better2'], data_dir, res_dir)
+    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better2'], res_dir)
+    # singleModelCV(dataset, feature_cases, 'LR', ['base', 'better2', 'better3'], res_dir)
+    # singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better2', 'better3'], res_dir)
+    # singleModelCV(dataset, feature_cases, 'C4.5', ['base', 'better2', 'better3'], res_dir)
+    # dumpTopicExpanderKRoc(feature_cases, 'LR', ['better2'], data_dir, res_dir)
+    # dumpTopicExpanderKRoc(feature_cases, 'Bayes', ['better2'], data_dir, res_dir)
+    # dumpTopicExpanderKRoc(feature_cases, 'C4.5', ['better2'], data_dir, res_dir)

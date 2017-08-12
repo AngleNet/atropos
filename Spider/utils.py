@@ -216,7 +216,6 @@ class TrainningSample:
         self.id = ''
         self.certified = 0
         self.num_followers = 0
-        self.num_followees = 0
         self.num_urls = 0
         self.num_videos = 0
         self.content_len = 0
@@ -224,16 +223,12 @@ class TrainningSample:
         self.retweet_rate = 0
         self.interact_rate = 0
         self.trending_index = 0
-        self.num_topics = 0
-        self.num_trending_topics = 0
-        self.has_trending_topics = 0
         self.pos = 0
 
     def __str__(self):
-        return '%(id)s,%(certified)s,%(num_followers)s,%(num_followees)s,%(num_urls)s,' \
+        return '%(id)s,%(certified)s,%(num_followers)s,%(num_urls)s,' \
                '%(num_videos)s,%(content_len)s,%(similarity)s,%(retweet_rate)s,' \
-               '%(interact_rate)s,%(trending_index)s,%(num_topics)s,' \
-               '%(num_trending_topics)s,%(has_trending_topics)s,%(pos)s' % self.__dict__
+               '%(interact_rate)s,%(trending_index)s,%(pos)s' % self.__dict__
 
     @staticmethod
     def lineSpliter(line):
@@ -245,18 +240,14 @@ class TrainningSample:
         samp.id = cols[0]
         samp.certified = int(cols[1])
         samp.num_followers = int(cols[2])
-        samp.num_followees = int(cols[3])
-        samp.num_urls = int(cols[4])
-        samp.num_videos = int(cols[5])
-        samp.content_len =  int(cols[6])
-        samp.similarity = float(cols[7])
-        samp.retweet_rate = float(cols[8])
-        samp.interact_rate = float(cols[9])
-        samp.trending_index = float(cols[10])
-        samp.num_topics = int(cols[11])
-        samp.num_trending_topics = int(cols[12])
-        samp.has_trending_topics = int(cols[13])
-        samp.pos = int(cols[14])
+        samp.num_urls = int(cols[3])
+        samp.num_videos = int(cols[4])
+        samp.content_len =  int(cols[5])
+        samp.similarity = float(cols[6])
+        samp.retweet_rate = float(cols[7])
+        samp.interact_rate = float(cols[8])
+        samp.trending_index = float(cols[9])
+        samp.pos = int(cols[10])
         return samp
 
 

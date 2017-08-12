@@ -284,7 +284,7 @@ if __name__ == '__main__':
     Spider.utils.dumpPlot(dict(
         file='{res_dir}/CDF-忽略.txt'.format(res_dir=res_dir),
         xlabel=dict(label='微博热度值', data=x),
-        ylabel=dict(label='忽略累积概率', data=pos)
+        ylabel=dict(label='忽略累积概率', data=neg)
     ))
     ##################Old Function###################
     # pos_data = trendingIndexFilter(pos_data,bins[-1])
