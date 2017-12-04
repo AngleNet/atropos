@@ -9,6 +9,12 @@ import codecs
 import bs4
 import os.path
 import json
+import urllib.parse
+import urllib.request
+import rsa
+import base64
+import binascii
+import http.cookiejar
 
 class Config:
     HTML_HEADERS = {'Cookie': ''}
@@ -686,6 +692,136 @@ def unitTestExtractTopics():
             if r[j] != res[i][j]:
                 debug('Failed in {msg}'.format(msg=topics[i]))
 
+def sServerData(serverData):
+    p = re.compile('\((.*)\)')    # 定义正则表达式
+    jsonData = p.search(serverData).group(1)  # 通过正则表达式查找并提取分组1
+    data = json.loads(jsonData)
+    serverTime = str(data['servertime'])   # 获取data中的相应字段，Json对象为一个字典
+    nonce = data['nonce']
+    pubkey = data['pubkey']
+    rsakv = data['rsakv']  # 获取字段
+    return serverTime, nonce, pubkey, rsakv
+
+
+#Login中解析重定位结果部分函数
+def sRedirectData(text):
+    p = re.compile('location\.replace\([\'"](.*?)[\'"]\)')
+    loginUrl = p.search(text).group(1)
+    print('loginUrl:',loginUrl)  # 输出信息，若返回值含有 'retcode = 0' 则表示登录成功
+    return loginUrl
+
+class WeiboEncoder(object):
+    def PostEncode(userName, passWord, serverTime, nonce, pubkey, rsakv):
+        encodedUserName = WeiboEncoder.GetUserName(userName)  # 用户名使用base64加密
+        encodedPassWord = WeiboEncoder.get_pwd(passWord, serverTime, nonce, pubkey)  # 目前密码采用rsa加密
+        postPara = {
+            'entry': 'weibo',
+            'gateway': '1',
+            'from': '',
+            'savestate': '7',
+            'userticket': '1',
+            'ssosimplelogin': '1',
+            'vsnf': '1',
+            'vsnval': '',
+            'su': encodedUserName,
+            'service': 'miniblog',
+            'servertime': serverTime,
+            'nonce': nonce,
+            'pwencode': 'rsa2',
+            'sp': encodedPassWord,
+            'encoding': 'UTF-8',
+            'prelt': '115',
+            'rsakv': rsakv,
+            'url': 'http://weibo.com/ajaxlogin.php?framelogin=1&callback=parent.sinaSSOController.feedBackUrlCallBack',
+            'returntype': 'META'
+        }
+        postData = urllib.parse.urlencode(postPara)  # 封装postData信息并返回
+        return postData
+
+    # 根据明文的用户名信息获取加密后的用户名
+    def GetUserName(userName):
+        userNameTemp = urllib.parse.quote(userName)
+        userNameEncoded = base64.encodebytes(userNameTemp)[:-1]
+        return userNameEncoded
+
+    # 根据明文的密码信息加入nonce和pubkey后根据rsa加密算法的规则生成密码的密文
+    def get_pwd(password, servertime, nonce, pubkey):
+        rsaPublickey = int(pubkey, 16)
+        key = rsa.PublicKey(rsaPublickey, 65537)  # 创建公钥
+        message = str(servertime) + '\t' + str(nonce) + '\n' + str(password)  # 拼接明文加密文件中得到
+        passwd = rsa.encrypt(message, key)  # 加密
+        passwd = binascii.b2a_hex(passwd)  # 将加密信息转换为16进制。
+        return passwd
+
+class WeiboLogin:
+    #python魔法方法，当初始化该类的对象时会调用此函数
+    def __init__(self, user, pwd, enableProxy = False):
+        self.userName = user
+        self.passWord = pwd
+        self.enableProxy = enableProxy  # 初始化类成员
+
+        # 在提交POST请求之前需要GET获取两个参数,得到的数据中有 "servertime" 和 "nonce" 的值，是随机的
+        self.serverUrl = "http://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSOController.preloginCallBack&su=&rsakt=mod&client=ssologin.js(v1.4.18)&_=1407721000736"
+        #loginUrl用于第二步，加密后的用户名和密码POST给这个URL
+        self.loginUrl = "http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.18)"
+        #self.postHeader = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:24.0) Gecko/20100101 Firefox/24.0'}
+        self.postHeader = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36'}
+        #self.postHeader = {'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)'}
+
+    # 生成Cookie接下来的所有get和post请求都带上已经获取的cookie，因为稍大些的网站的登陆验证全靠cookie
+    def EnableCookie(self, enableProxy):
+        cookiejar = http.cookiejar.LWPCookieJar()  # 建立COOKIE
+        cookie_support = urllib.request.HTTPCookieProcessor(cookiejar)
+        if enableProxy:
+            proxy_support = urllib.request.ProxyHandler({'http': 'http://122.96.59.107:843'}) # 使用代理
+            opener = urllib.request.build_opener(proxy_support, cookie_support, urllib2.HTTPHandler)
+            print("Proxy enable")
+        else:
+            opener = urllib.request.build_opener(cookie_support, urllib.request.HTTPHandler)
+        urllib.request.install_opener(opener)
+
+    def GetServerTime(self):
+        serverData = urllib.request.urlopen(self.serverUrl).read()   # 获取网页内容
+        print('serverData', serverData)
+        try:
+            # 在JSON中提取serverTime, nonce, pubkey, rsakv字段
+            serverTime, nonce, pubkey, rsakv = sServerData(serverData)
+            return serverTime, nonce, pubkey, rsakv
+        except:
+            return None
+
+    def getData(url):
+        request = urllib.request.Request(url)
+        response = urllib.request.urlopen(request)
+        content = response.read()
+        return content
+
+
+    def Login(self):  # 登录程序
+        self.EnableCookie(self.enableProxy)      # Cookie或代理服务器配置，调用自定义函数实现
+        serverTime, nonce, pubkey, rsakv = self.GetServerTime()      # 登录第一步，调用函数获取上述信息
+        # 准备好所有的POST参数返回postData
+        postData = WeiboEncoder.PostEncode(self.userName, self.passWord, serverTime, nonce, pubkey, rsakv)
+        print("Getting postData success")
+        #封装request请求，获得指定URL的文本
+        req = urllib.request.Request(self.loginUrl, postData, self.postHeader)   # 封装请求信息
+        result = urllib.request.urlopen(req)  # 登录第二步向self.loginUrl发送用户和密码
+        text = result.read()    # 读取内容
+        #print text
+        """
+        登陆之后新浪返回的一段脚本中定义的一个进一步登陆的url
+        之前还都是获取参数和验证之类的，这一步才是真正的登陆
+        所以你还需要再一次把这个url获取到并用get登陆即可
+        """
+        try:
+            loginUrl = sRedirectData(text)  # 得到重定位信息后，解析得到最终跳转到的URL
+            urllib.request.urlopen(loginUrl)  # 打开该URL后，服务器自动将用户登陆信息写入cookie，登陆成功
+            print(loginUrl)
+        except:
+            print("login failed...")
+            return False
+        print("login success")
+        return True
 
 if __name__ == '__main__':
     unitTestExtractTopics()
