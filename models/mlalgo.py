@@ -1,7 +1,7 @@
 """
 """
 import numpy as np
-import codecs, sklearn,os
+import codecs, sklearn
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
 import sklearn.model_selection as ms
 from sklearn import svm
@@ -16,7 +16,7 @@ matplotlib.rcParams['font.family']='sans-serif'
 plt.rcParams['axes.unicode_minus']=False
 
 import pandas
-import sys, glob
+import sys, os, glob
 sys.path.append('..')
 import Spider.utils
 
@@ -46,28 +46,19 @@ def loadDataSet(fn):
     _dataset = pandas.DataFrame(__dataset)
     num_pos = len(_dataset[_dataset['pos']==1])
     _dataset_pos = _dataset[_dataset['pos']==1]
-    _dataset.drop(_dataset['pos']==1,inplace=1,axis=0)
-    _dataset_neg = _dataset[:num_pos]
+    _dataset_neg = _dataset[_dataset['pos'] == 0]
+    _dataset_neg = _dataset_neg[:num_pos]
     new_dataset = _dataset_pos.append(_dataset_neg)
     return new_dataset
     # print (new_dataset.shape,num_pos)
     # print (_dataset.shape)
 
-def checkDataSet(dataset):
-    pass
-
 def preprocessing(dataset):
     dataset = dataset.sample(n=dataset.shape[0])
+    _labels = ['num_followers', 'num_urls', 'content_len']
     min_max_scaler = sklearn.preprocessing.MinMaxScaler()
-    dataset['certified'] /= 10
-    log_transformer = sklearn.preprocessing.FunctionTransformer(np.log10)
-    dataset['num_followers'] = log_transformer.transform(dataset['num_followers']).reshape(-1, 1)
-    dataset['num_followers'] = dataset['num_followers'].replace([np.inf, -np.inf], np.nan)
-    dataset['num_followers'] =  dataset['num_followers'].fillna(0)
-    dataset['num_urls'] /= 10
-    dataset['num_videos'] /= 10
-    dataset['content_len'] = min_max_scaler.fit_transform(dataset['content_len'].values.reshape(-1,1))
-    dataset['trending_index'] *= 10
+    for _label in _labels:
+        dataset[_label] = min_max_scaler.fit_transform(dataset[_label].values.reshape(-1,1))
     return dataset
 
 def runLR(dataset, target, res_dir):
@@ -191,18 +182,18 @@ def plotModelRoc(dataset, target):
     plt.legend(loc="lower right")
     plt.show()
 
-def plotModelRoc2(dataset, feature_cases):
+def plotModelRoc2(dataset, feature_cases, res_dir):
     # Case: base
     features = dataset.filter(items=feature_cases['base'])
     rand = np.random.RandomState(0)
     classifiers = {
-        'LR': LogisticRegression(class_weight='balanced'),
-        #'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
-        # 'Bayes': naive_bayes.GaussianNB(),
+        # 'LR': LogisticRegression(penalty='l1', solver='liblinear'),
+        # 'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
+        'Bayes': naive_bayes.GaussianNB(),
         # 'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
     }
     train_dataset, test_dataset, train_target, test_target = \
-        ms.train_test_split(features, target, test_size=0.1, random_state=rand)
+        ms.train_test_split(features, target, test_size=0.2, random_state=rand)
     for cls_name, cls in classifiers.items():
         Spider.utils.debug('Modeling %s' % cls_name)
         _model = cls.fit(train_dataset, train_target)
@@ -221,10 +212,13 @@ def plotModelRoc2(dataset, feature_cases):
         prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, ':',  lw=1.5, label='基准特征 %s (area = %0.2f)' % (cls_name, roc_auc))
+        with codecs.open('{dir}/{cls}-base.txt'.format(dir=res_dir,
+                                                            cls=cls_name), 'w', 'utf-8') as fd:
+            fd.write('False Positve Rate, True Positive Rate\n')
+            for idx in range(0, len(fpr)):
+                fd.write('{fpr}, {tpr}\n'.format(fpr=fpr[idx], tpr=tpr[idx]))
+        plt.plot(fpr, tpr, ':',  lw=1.5, label='基准特征 %s (area = %0.4f)' % (cls_name, roc_auc))
 
-    # Case: better3
-    #       base + trending_index
     features = dataset.filter(items=feature_cases['better2'])
     train_dataset, test_dataset, train_target, test_target = \
         ms.train_test_split(features, target, test_size=0.1, random_state=rand)
@@ -245,127 +239,43 @@ def plotModelRoc2(dataset, feature_cases):
         ))
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, lw=1.5, label='基准特征+流行度 %s (area = %0.2f)' % (cls_name, roc_auc))
-
-    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC 曲线')
-    plt.legend(loc="lower right")
-    plt.show()
-
-def plotSingleModelRoc(dataset, feature_cases, model_name, feature_groups, res_dir):
-    groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
-                  better2='基准特征+话题热度', better3='话题热度')
-    rand = np.random.RandomState(0)
-    classifiers = {
-        'LR': LogisticRegression(class_weight='balanced'),
-        'SVM':  svm.SVC(kernel='poly', random_state=rand, probability=True),
-        'Bayes': naive_bayes.GaussianNB(),
-         'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
-    }
-    if model_name not in classifiers:
-        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
-            name=model_name, models=classifiers.keys()
-        ))
-        return
-    res_fd = codecs.open('{dir}/model_result.{model}'.format(dir=res_dir,
-                                                             model=model_name), 'w', 'utf-8')
-    model = classifiers[model_name]
-    for case in feature_groups:
-        train_dataset, test_dataset, train_target, test_target = \
-            ms.train_test_split(dataset.filter(items=feature_cases[case]), dataset['pos'], test_size=0.4, random_state=rand)
-        Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[case]))
-        _model = model.fit(train_dataset, train_target)
-        target_pred = _model.predict(test_dataset)
-
-        precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
-        recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
-        f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
-
-
-
+        with codecs.open('{dir}/{cls}-better2.txt'.format(dir=res_dir,
+                                                          cls=cls_name), 'w', 'utf-8') as fd:
+            fd.write('False Positve Rate, True Positive Rate\n')
+            for idx in range(0, len(fpr)):
+                fd.write('{fpr}, {tpr}\n'.format(fpr=fpr[idx], tpr=tpr[idx]))
+        plt.plot(fpr, tpr, lw=1.5, label='流行度 %s (area = %0.4f)' % (cls_name, roc_auc))
+    # Case: better3
+    #       base + trending_index
+    features = dataset.filter(items=feature_cases['better3'])
+    train_dataset, test_dataset, train_target, test_target = \
+        ms.train_test_split(features, target, test_size=0.1, random_state=rand)
+    for cls_name, cls in classifiers.items():
+        Spider.utils.debug('Modeling %s' % cls_name)
+        _model = cls.fit(train_dataset, train_target)
         prob = _model.predict_proba(test_dataset)
-        fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
-        roc_auc = metrics.auc(fpr, tpr)
-        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%, {auc:.2f}'.format(
-            prec=precision * 100,
-            recall=recall * 100,
-            fscore=f1_score * 100,
-            auc=roc_auc*100,
-        ))
-        Spider.utils.dumpPlot(dict(
-            file='{res}/{model}-{feature}-ROC.txt'.format(res=res_dir,
-                                                          model=model_name, feature=groups[case]),
-            xlabel=dict(
-                label='False Positive Rate',
-                data=fpr
-            ),
-            ylabel=dict(
-                label='True Positive Rate',
-                data=tpr
-            )
-        ))
-        plt.plot(fpr, tpr, lw=1.5, label='%s %s (area = %0.2f)' % (groups[case], model_name, roc_auc))
-        res_fd.write('{precision:.3f}%,{recall:.3f}%,{f1:.3f}%,{roc:.3f}%\n'.format(
-            precision=precision*100,
-            recall = recall*100,
-            f1=f1_score*100,
-            roc=roc_auc*100
-        ))
-    res_fd.close()
-    plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC 曲线')
-    plt.legend(loc="lower right")
-    plt.show()
-#PartIII
-def superParameterK(proj_dir, feature_cases, model_name, feature_group):
-    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
-             better2 = '基准特征+话题热度')
-    rand = np.random.RandomState(0)
-    classifiers = {
-        'LR': LogisticRegression(class_weight='balanced'),
-        'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
-        'Bayes': naive_bayes.GaussianNB(),
-        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
-    }
-    if model_name not in classifiers:
-        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
-            name=model_name, models=classifiers.keys()
-        ))
-        return
-    model = classifiers[model_name]
-    data_dir = proj_dir  + '/data'
-    dataset_fs = glob.glob('{dir}/samples.train.*'.format(dir=data_dir))
-    for _fname in sorted(dataset_fs, key=lambda x: int(x.split('.')[-1])):
-        _num = os.path.basename(_fname).split('.')[-1]
-        dataset = loadDataSet(_fname)
-        train_dataset, test_dataset, train_target, test_target = \
-            ms.train_test_split(dataset.filter(items=feature_cases[feature_group]), dataset['pos'], test_size=0.1,
-                                random_state=rand)
-        Spider.utils.debug('Modeling %s with %s (k=%s)' % (model_name, groups[feature_group], _num))
-        _model = model.fit(train_dataset, train_target)
         target_pred = _model.predict(test_dataset)
 
         precision = metrics.precision_score(np.array(test_target), np.array(target_pred))
         recall = metrics.recall_score(np.array(test_target), np.array(target_pred))
         f1_score = metrics.f1_score(np.array(test_target), np.array(target_pred))
+
         Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%'.format(
             prec=precision * 100,
             recall=recall * 100,
             fscore=f1_score * 100,
         ))
-        prob = _model.predict_proba(test_dataset)
         fpr, tpr, shresholds = metrics.roc_curve(test_target, prob[:, 1])
         roc_auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, lw=1.5, label='(k=%s) %s %s (area = %0.2f)' %
-                                         (_num, groups[feature_group], model_name, roc_auc))
+        with codecs.open('{dir}/{cls}-better3.txt'.format(dir=res_dir,
+                                                            cls=cls_name), 'w', 'utf-8') as fd:
+            fd.write('False Positve Rate, True Positive Rate\n')
+            for idx in range(0, len(fpr)):
+                fd.write('{fpr}, {tpr}\n'.format(fpr=fpr[idx], tpr=tpr[idx]))
+        plt.plot(fpr, tpr, lw=1.5, label='基准特征+流行度 %s (area = %0.4f)' % (cls_name, roc_auc))
+
+
+
     plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
@@ -374,15 +284,15 @@ def superParameterK(proj_dir, feature_cases, model_name, feature_group):
     plt.title('ROC 曲线')
     plt.legend(loc="lower right")
     plt.show()
-    os.abort()
 
+#PartIII
 def dumpTopicExpanderKRoc(feature_cases, model_name,
                           feature_groups, data_dir, res_dir):
-    groups = dict(base='基准特征', better1='基准特征+包含话题个数',
-                  better2='基准特征+话题热度')
+    groups = dict(base='基准特征', better2='话题热度',
+                  better3='基准特征+话题热度')
     rand = np.random.RandomState(0)
     classifiers = {
-        'LR': LogisticRegression(class_weight='balanced'),
+        'LR': LogisticRegression(penalty='l1', solver='liblinear'),
         'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
         'Bayes': naive_bayes.GaussianNB(),
         'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
@@ -394,104 +304,49 @@ def dumpTopicExpanderKRoc(feature_cases, model_name,
         return
     model = classifiers[model_name]
     dataset_fs = glob.glob('{dir}/samples.train.*'.format(dir=data_dir))
-    want_metrics = ['precision', 'f1', 'recall', 'roc_auc']
     for case in feature_groups:
         with codecs.open('{dir}/topic-window-{name}-{case}.txt'.format(dir=res_dir,
                                                             name=model_name ,case=groups[case]), 'w', 'utf-8') as fd:
-            fd.write('{x},{precision}, {f1}, {recall},{y}\n'.format(x='扩展词个数',
-                                                                    precision = '准确率',
-                                                                    f1 = 'F1',
-                                                                    recall = '召回率',
-                                                                    y='ROC'))
+            fd.write('{x},{y}\n'.format(x='话题个数', y='ROC'))
             for _fname in sorted(dataset_fs, key=lambda x: int(x.split('.')[-1])):
                 _num = os.path.basename(_fname).split('.')[-1]
                 dataset = loadDataSet(_fname)
                 dataset = preprocessing(dataset)
                 train_dataset = dataset.filter(items=feature_cases[case])
                 train_target = dataset['pos']
-                scores = dict()
-                for _metric in want_metrics:
-                    score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring=_metric)
-                    scores[_metric] = score.mean()
-                fd.write('{k},{precision},{f1},{recall},{roc_auc}\n'.format(k = _num,
-                                                                        precision=scores['precision'],
-                                                                        f1 = scores['f1'],
-                                                                        recall=scores['recall'],
-                                                                        roc_auc=scores['roc_auc']))
-    pass
-def singleModelCV(dataset, feature_cases, model_name, feature_groups, res_dir):
-    groups = dict(base='基准特征', better1='基准特征+是否包含热点话题',
-                  better2='基准特征+话题热度', better3='话题热度')
-    rand = np.random.RandomState(0)
-    classifiers = {
-        'LR': LogisticRegression(class_weight='balanced'),
-        'SVM': svm.SVC(kernel='poly', random_state=rand, probability=True),
-        'Bayes': naive_bayes.GaussianNB(),
-        'C4.5': tree.DecisionTreeClassifier(criterion='entropy')
-    }
-    if model_name not in classifiers:
-        Spider.utils.debug('Model name {name}s is not supported, only supports {models}s'.format(
-            name=model_name, models=classifiers.keys()
-        ))
-        return
-    res_fd = codecs.open('{dir}/model_result.{model}'.format(dir=res_dir,
-                                                             model=model_name), 'w', 'utf-8')
-    model = classifiers[model_name]
-    want_metrics = ['precision', 'f1', 'recall', 'roc_auc']
-    for case in feature_groups:
-        Spider.utils.debug('Modeling %s with %s ' % (model_name, groups[case]))
-        train_dataset = dataset.filter(items=feature_cases[case])
-        train_target = dataset['pos']
-        scores = dict()
-        for _metric in want_metrics:
-            score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring=_metric)
-            scores[_metric] = score.mean()
-
-        Spider.utils.debug('{prec:.2f}%, {recall:.2f}%, {fscore:.2f}%, {roc_auc:.2f}%'.format(
-            prec=scores['precision'] * 100,
-            recall=scores['recall'] * 100,
-            fscore=scores['f1'] * 100,
-            roc_auc=scores['roc_auc']*100
-        ))
-
-        res_fd.write('{precision:.3f}%,{recall:.3f}%,{f1:.3f}%,{roc:.3f}%\n'.format(
-            precision=scores['precision'] * 100,
-            recall=scores['recall'] * 100,
-            f1=scores['f1'] * 100,
-            roc=scores['roc_auc'] * 100
-        ))
+                score = ms.cross_val_score(model, train_dataset, train_target, cv=10, scoring='roc_auc').mean()
+                fd.write('{k},{roc}\n'.format(k = _num, roc=score))
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         proj_dir = '..'
     else:
         proj_dir = sys.argv[1]
-    _base_features = ['certified', 'num_followers', 'num_urls', 'num_videos',
-                      'content_len', 'similarity']
-    feature_cases = {
-        'base': _base_features,
-        'better1': _base_features + ['has_trending_topics'],
-        'better2': _base_features + ['trending_index'],
-        'better3': ['trending_index']
-    }
-
-    # superParameterK(proj_dir, feature_cases, 'Bayes', 'base')
+    data_dir = proj_dir + '/data'
     res_dir = proj_dir + '/result'
-    data_dir = proj_dir +'/data'
     dataset = loadDataSet('{dir}/data/samples.train'.format(dir=proj_dir))
     dataset = preprocessing(dataset)
-
-    # target = dataset['pos']
-    # features = dataset.filter(items=feature_cases['better2'])
+    feature_cases = {
+        'base': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity'],
+        'better1': [],
+        'better2': ['trending_index'],
+        'better3': ['certified', 'num_followers', 'num_urls', 'num_videos', 'content_len', 'similarity', 'trending_index'],
+        'all': [],
+    }
+    features = dataset.filter(items=feature_cases['better3'])
+    target = dataset['pos']
     #cvModels(features, target, res_dir)
     #evalRocCurve(features, target)
     # cacModelPrecision(features, target, 'lr')
     # plotModelRoc(features, target)
-    # plotModelRoc2(dataset, feature_cases)
-    plotSingleModelRoc(dataset, feature_cases, 'Bayes', ['base', 'better2'], res_dir)
-    # singleModelCV(dataset, feature_cases, 'LR', ['base', 'better2', 'better3'], res_dir)
-    # singleModelCV(dataset, feature_cases, 'Bayes', ['base', 'better2', 'better3'], res_dir)
-    # singleModelCV(dataset, feature_cases, 'C4.5', ['base', 'better2', 'better3'], res_dir)
-    # dumpTopicExpanderKRoc(feature_cases, 'LR', ['better2'], data_dir, res_dir)
-    # dumpTopicExpanderKRoc(feature_cases, 'Bayes', ['better2'], data_dir, res_dir)
-    # dumpTopicExpanderKRoc(feature_cases, 'C4.5', ['better2'], data_dir, res_dir)
+    plotModelRoc2(dataset, feature_cases, res_dir)
+    # dumpTopicExpanderKRoc(feature_cases, 'LR', ['better3'], data_dir, res_dir)
+    # dumpTopicExpanderKRoc(feature_cases, 'Bayes', ['better3'], data_dir, res_dir)
+    # dumpTopicExpanderKRoc(feature_cases, 'C4.5', ['better3'], data_dir, res_dir)
+
+
+
+
+
+
+
